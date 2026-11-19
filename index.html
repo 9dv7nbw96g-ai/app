@@ -3,74 +3,126 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dispensa & Scadenze</title>
+  <title>Dispensa Cartoon & Scadenze</title>
   <script type="text/javascript" src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
   <style>
     :root {
-      --bg: #0f172a;
-      --card: #1e293b;
-      --card-2: #334155;
-      --text: #f8fafc;
-      --muted: #94a3b8;
-      --accent: #22c55e;
-      --accent-hover: #16a34a;
-      --warn: #f59e0b;
-      --danger: #ef4444;
-      --border: #475569;
+      --bg: #fff7ed;
+      --surface: #ffffff;
+      --surface-2: #fef3c7;
+      --ink: #18181b;
+      --muted: #52525b;
+      --border: #18181b;
+      --green: #4ade80;
+      --green-dark: #16a34a;
+      --yellow: #facc15;
+      --orange: #fb923c;
+      --red: #f87171;
+      --blue: #60a5fa;
+      --shadow: 4px 4px 0px #18181b;
+      --shadow-sm: 2px 2px 0px #18181b;
     }
 
     * {
       box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: "Trebuchet MS", "Comic Sans MS", "Segoe UI Rounded", system-ui, sans-serif;
     }
 
     body {
       margin: 0;
-      padding: 16px;
-      background: var(--bg);
-      color: var(--text);
-      max-width: 680px;
+      padding: 16px 14px 40px;
+      background-color: var(--bg);
+      background-image: radial-gradient(#fed7aa 1.5px, transparent 1.5px);
+      background-size: 18px 18px;
+      color: var(--ink);
+      max-width: 700px;
       margin-inline: auto;
     }
 
-    h1 {
-      margin: 0 0 6px;
-      font-size: 1.5rem;
+    .hero {
+      background: var(--yellow);
+      border: 3px solid var(--border);
+      border-radius: 22px;
+      padding: 16px 18px;
+      box-shadow: var(--shadow);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
     }
 
-    .subtitle {
-      color: var(--muted);
+    .hero h1 {
+      margin: 0 0 4px;
+      font-size: 1.55rem;
+      font-weight: 900;
+      letter-spacing: -0.3px;
+    }
+
+    .hero p {
+      margin: 0;
       font-size: 0.9rem;
-      margin-bottom: 18px;
+      font-weight: 700;
+      color: #27272a;
+    }
+
+    .badge-cartoon {
+      background: var(--surface);
+      border: 3px solid var(--border);
+      border-radius: 16px;
+      padding: 8px 12px;
+      font-weight: 900;
+      font-size: 0.85rem;
+      box-shadow: var(--shadow-sm);
+      white-space: nowrap;
     }
 
     .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
+      background: var(--surface);
+      border: 3px solid var(--border);
+      border-radius: 22px;
       padding: 16px;
-      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+      margin-bottom: 18px;
+    }
+
+    .section-title {
+      margin: 0 0 12px;
+      font-size: 1.1rem;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     label {
       display: block;
-      font-size: 0.85rem;
-      color: var(--muted);
-      margin-bottom: 6px;
+      font-size: 0.88rem;
+      font-weight: 900;
+      margin-bottom: 5px;
+      color: var(--ink);
     }
 
     input, select, button {
       width: 100%;
-      padding: 11px 12px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      font-size: 1rem;
+      padding: 11px 13px;
+      border-radius: 14px;
+      border: 2.5px solid var(--border);
+      font-size: 0.98rem;
+      font-weight: 700;
       margin-bottom: 12px;
+      outline: none;
     }
 
     input, select {
-      background: var(--bg);
-      color: var(--text);
+      background: #fffbeb;
+      color: var(--ink);
+      box-shadow: var(--shadow-sm);
+    }
+
+    input:focus, select:focus {
+      background: #ffffff;
+      border-color: #2563eb;
     }
 
     .row {
@@ -80,231 +132,398 @@
     }
 
     button {
-      background: var(--accent);
-      color: #052e16;
-      font-weight: 700;
-      border: none;
+      background: var(--green);
+      color: var(--ink);
+      font-weight: 900;
+      border: 2.5px solid var(--border);
+      box-shadow: var(--shadow-sm);
       cursor: pointer;
+      transition: transform 0.08s ease, box-shadow 0.08s ease;
     }
 
-    button:hover {
-      background: var(--accent-hover);
+    button:active {
+      transform: translate(2px, 2px);
+      box-shadow: 0px 0px 0px var(--border);
     }
 
     button:disabled {
-      opacity: 0.6;
+      opacity: 0.55;
       cursor: not-allowed;
     }
 
-    button.secondary {
-      background: var(--card-2);
-      color: var(--text);
-      border: 1px solid var(--border);
+    button.btn-blue {
+      background: var(--blue);
     }
 
-    button.danger {
-      background: var(--danger);
-      color: #fff;
+    button.btn-yellow {
+      background: var(--yellow);
     }
 
-    button.small {
+    button.btn-orange {
+      background: var(--orange);
+    }
+
+    button.btn-red {
+      background: var(--red);
+    }
+
+    button.btn-white {
+      background: var(--surface);
+    }
+
+    button.mini {
       width: auto;
       padding: 6px 10px;
       font-size: 0.85rem;
+      border-radius: 11px;
       margin-bottom: 0;
     }
 
-    button.filter-btn {
-      width: auto;
-      padding: 8px 12px;
+    .preview-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface-2);
+      border: 2.5px solid var(--border);
+      border-radius: 16px;
+      padding: 10px;
+      margin-bottom: 14px;
+    }
+
+    .preview-thumb {
+      width: 62px;
+      height: 62px;
+      border-radius: 12px;
+      border: 2.5px solid var(--border);
+      object-fit: cover;
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+
+    .preview-info {
       font-size: 0.85rem;
-      margin-bottom: 0;
-      background: var(--bg);
+      font-weight: 700;
       color: var(--muted);
-      border: 1px solid var(--border);
     }
 
-    button.filter-btn.active {
-      background: var(--accent);
-      color: #052e16;
-      border-color: var(--accent);
-    }
-
-    button.filter-btn.urgent.active {
-      background: var(--warn);
-      color: #1c1917;
-      border-color: var(--warn);
+    .preview-info strong {
+      display: block;
+      color: var(--ink);
+      font-size: 0.92rem;
+      margin-bottom: 2px;
     }
 
     #videoContainer {
       position: relative;
       width: 100%;
-      min-height: 220px;
-      max-height: 300px;
-      border-radius: 12px;
+      border-radius: 16px;
+      border: 3px solid var(--border);
       overflow: hidden;
       margin-bottom: 12px;
       display: none;
-      background: #000;
+      background: #18181b;
     }
 
     video {
       width: 100%;
-      height: 240px;
+      height: 230px;
       object-fit: cover;
       display: block;
     }
 
     .status {
-      font-size: 0.85rem;
-      color: var(--muted);
-      min-height: 18px;
-      margin-bottom: 10px;
+      background: #f4f4f5;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 8px 12px;
+      font-size: 0.86rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .controls-top {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
     }
 
     .item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 12px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-left: 6px solid var(--accent);
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 10px;
+      gap: 10px;
+      background: var(--surface);
+      border: 2.5px solid var(--border);
+      border-left: 8px solid var(--green-dark);
+      border-radius: 18px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-sm);
     }
 
     .item.soon {
-      border-left-color: var(--warn);
+      border-left-color: var(--orange);
+      background: #fffbeb;
     }
 
     .item.expired {
-      border-left-color: var(--danger);
+      border-left-color: #dc2626;
+      background: #fef2f2;
+    }
+
+    .item-left {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      min-width: 0;
+    }
+
+    .item-img {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      object-fit: cover;
+      background: #f4f4f5;
+      flex-shrink: 0;
     }
 
     .item-title {
-      font-weight: 700;
+      font-weight: 900;
       font-size: 1rem;
+      word-break: break-word;
+    }
+
+    .qty-pill {
+      display: inline-block;
+      background: var(--yellow);
+      border: 2px solid var(--border);
+      border-radius: 999px;
+      padding: 1px 8px;
+      font-size: 0.82rem;
+      font-weight: 900;
+      margin-left: 4px;
     }
 
     .item-meta {
       font-size: 0.82rem;
+      font-weight: 700;
       color: var(--muted);
-      margin-top: 4px;
+      margin-top: 3px;
     }
 
-    .actions {
+    .item-actions {
       display: flex;
-      gap: 6px;
+      flex-wrap: wrap;
+      gap: 5px;
+      justify-content: flex-end;
       flex-shrink: 0;
     }
 
-    .toolbar {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 12px;
+    .empty-msg {
+      text-align: center;
+      padding: 18px 10px;
+      font-weight: 800;
+      color: var(--muted);
+      background: #fafafa;
+      border: 2px dashed var(--border);
+      border-radius: 16px;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(24, 24, 27, 0.65);
+      display: none;
       align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 50;
     }
 
-    .filter-bar {
+    .modal-backdrop.open {
       display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 12px;
     }
 
-    #searchInput {
-      margin-bottom: 10px;
+    .modal-card {
+      width: 100%;
+      max-width: 480px;
+      max-height: 90vh;
+      overflow-y: auto;
+      background: var(--surface);
+      border: 3px solid var(--border);
+      border-radius: 22px;
+      padding: 18px;
+      box-shadow: 6px 6px 0px var(--border);
+    }
+
+    @media (max-width: 520px) {
+      .item {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .item-actions {
+        justify-content: flex-start;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>Dispensa & Scadenze</h1>
-  <div class="subtitle">Archivio locale sul dispositivo con scansione EAN, Open Food Facts e stima scadenza.</div>
+  <header class="hero">
+    <div>
+      <h1>🥫 Dispensa Cartoon</h1>
+      <p>Scansiona, foto automatica e scadenze sempre sotto controllo!</p>
+    </div>
+    <div class="badge-cartoon" id="totalCountBadge">0 pz</div>
+  </header>
 
-  <div class="card">
+  <section class="card">
+    <h2 class="section-title">📷 Nuovo Prodotto</h2>
+
     <div class="row">
-      <button type="button" id="btnScan" class="secondary">Scansiona Codice</button>
-      <button type="button" id="btnStopScan" class="secondary" style="display:none;">Ferma Fotocamera</button>
+      <button type="button" id="btnScan" class="btn-blue">Scansiona Barcode</button>
+      <button type="button" id="btnStopScan" class="btn-orange" style="display:none;">Ferma Camera</button>
     </div>
 
     <div id="videoContainer">
       <video id="interactive" autoplay muted playsinline></video>
     </div>
 
-    <div id="statusMsg" class="status">Pronto. Puoi scansionare un codice a barre o inserire i dati a mano.</div>
+    <div id="statusMsg" class="status">Pronto! Scansiona un codice a barre o compila i campi qui sotto.</div>
+
+    <div class="preview-box">
+      <img id="previewImg" class="preview-thumb" src="" alt="Anteprima prodotto" />
+      <div class="preview-info">
+        <strong id="previewTitle">Foto automatica prodotto</strong>
+        <span id="previewSub">Viene recuperata dal barcode o puoi incollare un link immagine.</span>
+      </div>
+    </div>
 
     <form id="productForm">
       <label for="barcode">Codice a barre (EAN)</label>
       <input type="text" id="barcode" autocomplete="off" inputmode="numeric" placeholder="Es. 8001505005822" />
 
       <label for="name">Nome prodotto</label>
-      <input type="text" id="name" required placeholder="Es. Latte fresco intero" />
+      <input type="text" id="name" required placeholder="Es. Biscotti frollini" />
+
+      <label for="imageUrl">URL Foto prodotto (automatica se trovata)</label>
+      <input type="url" id="imageUrl" placeholder="Compilata in automatico dalla scansione..." />
 
       <div class="row">
         <div>
-          <label for="category">Categoria (stima giorni)</label>
+          <label for="category">Categoria (stima gg)</label>
           <select id="category">
-            <option value="Latticini|10">Latticini (+10 gg)</option>
-            <option value="Carne/Pesce|4">Carne / Pesce (+4 gg)</option>
-            <option value="Verdura Fresca|6">Verdura Fresca (+6 gg)</option>
-            <option value="Pasta/Riso|365">Pasta / Riso (+365 gg)</option>
-            <option value="Scatolame|730">Scatolame (+730 gg)</option>
-            <option value="Surgelati|180">Surgelati (+180 gg)</option>
-            <option value="Bevande|90">Bevande (+90 gg)</option>
-            <option value="Altro|14">Altro (+14 gg)</option>
+            <option value="Latticini|10">🥛 Latticini (+10 gg)</option>
+            <option value="Carne/Pesce|4">🥩 Carne/Pesce (+4 gg)</option>
+            <option value="Verdura Fresca|6">🥦 Verdura (+6 gg)</option>
+            <option value="Pasta/Riso|365">🍝 Pasta/Riso (+365 gg)</option>
+            <option value="Scatolame|730">🥫 Scatolame (+730 gg)</option>
+            <option value="Surgelati|180">🧊 Surgelati (+180 gg)</option>
+            <option value="Bevande|90">🥤 Bevande (+90 gg)</option>
+            <option value="Altro|14">📦 Altro (+14 gg)</option>
           </select>
         </div>
 
         <div>
-          <label for="qty">Quantità</label>
+          <label for="qty">Quantità iniziale</label>
           <input type="number" id="qty" min="1" step="1" value="1" required />
         </div>
       </div>
 
-      <label for="expiry">Data di scadenza (calcolata in automatico, modificabile)</label>
+      <label for="expiry">Data di scadenza</label>
       <input type="date" id="expiry" required />
 
-      <button type="submit">Salva in Dispensa</button>
+      <button type="submit">➕ Salva in Dispensa</button>
     </form>
-  </div>
+  </section>
 
-  <div class="card">
-    <input type="search" id="searchInput" placeholder="Cerca prodotto o categoria..." />
+  <section class="card">
+    <h2 class="section-title">📋 La Tua Dispensa</h2>
 
-    <div class="filter-bar">
-      <button type="button" id="filterAll" class="filter-btn active">Tutti (0)</button>
-      <button type="button" id="filterUrgent" class="filter-btn urgent">In scadenza ≤ 3 gg (0)</button>
-    </div>
+    <input type="search" id="searchInput" placeholder="🔍 Cerca per nome, categoria o codice..." />
 
-    <div class="toolbar">
-      <button type="button" id="btnExport" class="secondary small">Esporta Backup</button>
-      <button type="button" id="btnImportTrigger" class="secondary small">Importa Backup</button>
+    <div class="controls-top">
+      <button type="button" id="filterAll" class="mini btn-yellow">Tutti (0)</button>
+      <button type="button" id="filterUrgent" class="mini btn-white">⚠️ Scad. ≤ 3 gg (0)</button>
+      <button type="button" id="btnExport" class="mini btn-blue">💾 Esporta</button>
+      <button type="button" id="btnImportTrigger" class="mini btn-white">📂 Importa</button>
       <input type="file" id="importFile" accept=".json,application/json" style="display:none;" />
     </div>
 
     <div id="list"></div>
+  </section>
+
+  <div id="editModal" class="modal-backdrop" aria-hidden="true">
+    <div class="modal-card">
+      <h2 class="section-title">✏️ Modifica Prodotto</h2>
+      <form id="editForm">
+        <input type="hidden" id="editId" />
+
+        <label for="editName">Nome prodotto</label>
+        <input type="text" id="editName" required />
+
+        <label for="editBarcode">Codice a barre (EAN)</label>
+        <input type="text" id="editBarcode" inputmode="numeric" />
+
+        <label for="editImageUrl">URL Foto</label>
+        <input type="url" id="editImageUrl" placeholder="https://..." />
+
+        <div class="row">
+          <div>
+            <label for="editCategory">Categoria</label>
+            <select id="editCategory">
+              <option value="Latticini">🥛 Latticini</option>
+              <option value="Carne/Pesce">🥩 Carne/Pesce</option>
+              <option value="Verdura Fresca">🥦 Verdura Fresca</option>
+              <option value="Pasta/Riso">🍝 Pasta/Riso</option>
+              <option value="Scatolame">🥫 Scatolame</option>
+              <option value="Surgelati">🧊 Surgelati</option>
+              <option value="Bevande">🥤 Bevande</option>
+              <option value="Altro">📦 Altro</option>
+            </select>
+          </div>
+          <div>
+            <label for="editQty">Quantità</label>
+            <input type="number" id="editQty" min="1" step="1" required />
+          </div>
+        </div>
+
+        <label for="editExpiry">Data di scadenza</label>
+        <input type="date" id="editExpiry" required />
+
+        <div class="row">
+          <button type="submit">Salva Modifiche</button>
+          <button type="button" id="btnCancelEdit" class="btn-white">Annulla</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <script>
-    const STORAGE_KEY = "dispensa_prodotti_v1";
+    const STORAGE_KEY = "dispensa_cartoon_v1";
     let memoryFallback = [];
     let codeReader = null;
     let isScanning = false;
     let isStartingScan = false;
+    let isLookingUp = false;
+    let lastLookedUpCode = "";
     let activeFilter = "all";
 
     const els = {
+      totalCountBadge: document.getElementById("totalCountBadge"),
       btnScan: document.getElementById("btnScan"),
       btnStopScan: document.getElementById("btnStopScan"),
       videoContainer: document.getElementById("videoContainer"),
       video: document.getElementById("interactive"),
       statusMsg: document.getElementById("statusMsg"),
+      previewImg: document.getElementById("previewImg"),
+      previewTitle: document.getElementById("previewTitle"),
+      previewSub: document.getElementById("previewSub"),
       form: document.getElementById("productForm"),
       barcode: document.getElementById("barcode"),
       name: document.getElementById("name"),
+      imageUrl: document.getElementById("imageUrl"),
       category: document.getElementById("category"),
       qty: document.getElementById("qty"),
       expiry: document.getElementById("expiry"),
@@ -314,18 +533,89 @@
       list: document.getElementById("list"),
       btnExport: document.getElementById("btnExport"),
       btnImportTrigger: document.getElementById("btnImportTrigger"),
-      importFile: document.getElementById("importFile")
+      importFile: document.getElementById("importFile"),
+      editModal: document.getElementById("editModal"),
+      editForm: document.getElementById("editForm"),
+      editId: document.getElementById("editId"),
+      editName: document.getElementById("editName"),
+      editBarcode: document.getElementById("editBarcode"),
+      editImageUrl: document.getElementById("editImageUrl"),
+      editCategory: document.getElementById("editCategory"),
+      editQty: document.getElementById("editQty"),
+      editExpiry: document.getElementById("editExpiry"),
+      btnCancelEdit: document.getElementById("btnCancelEdit")
     };
+
+    function sanitizeImageUrl(rawUrl) {
+      const trimmed = String(rawUrl || "").trim();
+      if (!trimmed) return "";
+      try {
+        const parsed = new URL(trimmed);
+        if (parsed.protocol === "https:" || parsed.protocol === "http:") {
+          return parsed.href;
+        }
+      } catch {}
+      return "";
+    }
+
+    function fallbackCartoonImage(categoryName = "Altro") {
+      const emojiMap = {
+        "Latticini": "🥛",
+        "Carne/Pesce": "🥩",
+        "Verdura Fresca": "🥦",
+        "Pasta/Riso": "🍝",
+        "Scatolame": "🥫",
+        "Surgelati": "🧊",
+        "Bevande": "🥤",
+        "Altro": "🛒"
+      };
+      const emoji = emojiMap[categoryName] || "🛒";
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"><rect width="120" height="120" rx="22" fill="#fef08a"/><text x="50%" y="56%" dominant-baseline="middle" text-anchor="middle" font-size="56">${emoji}</text></svg>`;
+      return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
+    }
+
+    function updatePreviewBox() {
+      const safeUrl = sanitizeImageUrl(els.imageUrl.value);
+      const [catName] = els.category.value.split("|");
+      const prodName = els.name.value.trim() || "Anteprima prodotto";
+
+      els.previewTitle.textContent = prodName;
+      if (safeUrl) {
+        els.previewImg.src = safeUrl;
+        els.previewSub.textContent = "Foto collegata al prodotto.";
+      } else {
+        els.previewImg.src = fallbackCartoonImage(catName);
+        els.previewSub.textContent = els.imageUrl.value.trim()
+          ? "URL non valido: mostrata icona cartoon."
+          : "Nessuna foto esterna: mostrata icona cartoon.";
+      }
+    }
+
+    els.previewImg.addEventListener("error", () => {
+      const [catName] = els.category.value.split("|");
+      els.previewImg.src = fallbackCartoonImage(catName);
+      els.previewSub.textContent = "Immagine non raggiungibile: usata icona cartoon.";
+    });
+
+    els.list.addEventListener("error", (e) => {
+      if (e.target && e.target.classList && e.target.classList.contains("item-img")) {
+        const catName = e.target.dataset.category || "Altro";
+        const fb = fallbackCartoonImage(catName);
+        if (e.target.src !== fb) {
+          e.target.src = fb;
+        }
+      }
+    }, true);
 
     function setStatus(msg) {
       els.statusMsg.textContent = msg;
     }
 
     function formatLocalDate(dateObj) {
-      const year = dateObj.getFullYear();
-      const month = String(dateObj.getMonth() + 1).padStart(2, "0");
-      const day = String(dateObj.getDate()).padStart(2, "0");
-      return `${year}-${month}-${day}`;
+      const y = dateObj.getFullYear();
+      const m = String(dateObj.getMonth() + 1).padStart(2, "0");
+      const d = String(dateObj.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
     }
 
     function isValidDateString(str) {
@@ -349,70 +639,74 @@
 
     function updateEstimatedExpiry() {
       els.expiry.value = addDaysToToday(getDaysForCategory());
+      updatePreviewBox();
     }
 
     function inferCategoryFromOFF(categoriesText = "") {
       const txt = String(categoriesText).toLowerCase();
-      if (/\b(milk|dairy|yogurt|cheese|latte|formaggio|burro|panna)\b/.test(txt)) {
-        return "Latticini|10";
-      }
-      if (/\b(meat|fish|poultry|carne|pesce|pollo|salumi|affettati)\b/.test(txt)) {
-        return "Carne/Pesce|4";
-      }
-      if (/\b(vegetable|fruit|verdura|frutta|ortaggi|insalata)\b/.test(txt)) {
-        return "Verdura Fresca|6";
-      }
-      if (/\b(pasta|rice|riso|cereali|farina)\b/.test(txt)) {
-        return "Pasta/Riso|365";
-      }
-      if (/\b(canned|conserv|scatola|tonno|pomodoro|legumi)\b/.test(txt)) {
-        return "Scatolame|730";
-      }
-      if (/\b(frozen|surgel|gelo)\b/.test(txt)) {
-        return "Surgelati|180";
-      }
-      if (/\b(beverage|water|juice|bevande|acqua|succo|bibite)\b/.test(txt)) {
-        return "Bevande|90";
-      }
+      if (/\b(milk|dairy|yogurt|cheese|latte|formaggio|burro|panna)\b/.test(txt)) return "Latticini|10";
+      if (/\b(meat|fish|poultry|carne|pesce|pollo|salumi|affettati)\b/.test(txt)) return "Carne/Pesce|4";
+      if (/\b(vegetable|fruit|verdura|frutta|ortaggi|insalata)\b/.test(txt)) return "Verdura Fresca|6";
+      if (/\b(pasta|rice|riso|cereali|farina)\b/.test(txt)) return "Pasta/Riso|365";
+      if (/\b(canned|conserv|scatola|tonno|pomodoro|legumi)\b/.test(txt)) return "Scatolame|730";
+      if (/\b(frozen|surgel|gelo)\b/.test(txt)) return "Surgelati|180";
+      if (/\b(beverage|water|juice|bevande|acqua|succo|bibite)\b/.test(txt)) return "Bevande|90";
       return null;
     }
 
-    async function lookupBarcode(code) {
+    async function lookupBarcode(code, force = false) {
       const clean = String(code || "").trim();
       if (!clean) return;
-      setStatus(`Ricerca codice ${clean} su Open Food Facts...`);
+      if (isLookingUp) return;
+      if (!force && clean === lastLookedUpCode) return;
+
+      isLookingUp = true;
+      lastLookedUpCode = clean;
+      setStatus(`🔎 Cerco ${clean} su Open Food Facts...`);
       try {
         const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${encodeURIComponent(clean)}.json`);
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         if (data && data.status === 1 && data.product) {
           const p = data.product;
           const productName = p.product_name_it || p.product_name || p.brands || "";
-          if (productName) {
+          const photo = sanitizeImageUrl(p.image_front_url || p.image_front_small_url || p.image_url || "");
+
+          if (productName && !els.name.value.trim()) {
+            els.name.value = productName;
+          } else if (productName) {
             els.name.value = productName;
           }
+          if (photo) {
+            els.imageUrl.value = photo;
+          }
+
           const inferred = inferCategoryFromOFF(p.categories || p.categories_tags || "");
           if (inferred) {
             els.category.value = inferred;
           }
+
           updateEstimatedExpiry();
-          setStatus(`Trovato: ${productName || "Prodotto"} - scadenza stimata aggiornata.`);
+          updatePreviewBox();
+          setStatus(`✅ Trovato: ${productName || "Prodotto"}${photo ? " + foto caricata!" : "."}`);
         } else {
           updateEstimatedExpiry();
-          setStatus("Codice non trovato su Open Food Facts: inserisci il nome manualmente.");
+          updatePreviewBox();
+          setStatus("ℹ️ Codice non trovato: inserisci nome e scadenza a mano.");
         }
-      } catch (err) {
+      } catch {
         updateEstimatedExpiry();
-        setStatus("Errore di rete durante la ricerca: scadenza stimata impostata.");
+        updatePreviewBox();
+        setStatus("⚠️ Errore di rete: scadenza stimata impostata.");
+      } finally {
+        isLookingUp = false;
       }
     }
 
     async function startScanner() {
       if (isScanning || isStartingScan) return;
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        setStatus("Questo browser non espone l'accesso alla fotocamera (serve HTTPS).");
+        setStatus("❌ Fotocamera non disponibile su questo contesto (serve HTTPS).");
         return;
       }
 
@@ -422,25 +716,16 @@
       if (!codeReader) {
         codeReader = new ZXing.BrowserMultiFormatReader();
       } else {
-        try {
-          codeReader.reset();
-        } catch (e) {}
+        try { codeReader.reset(); } catch {}
       }
 
       els.videoContainer.style.display = "block";
       els.btnStopScan.style.display = "block";
-      setStatus("Richiesta fotocamera in corso...");
-
-      const constraints = {
-        audio: false,
-        video: {
-          facingMode: { ideal: "environment" }
-        }
-      };
+      setStatus("📷 Avvio fotocamera...");
 
       try {
         await codeReader.decodeFromConstraints(
-          constraints,
+          { audio: false, video: { facingMode: { ideal: "environment" } } },
           els.video,
           async (result, err) => {
             if (!isScanning) return;
@@ -448,17 +733,17 @@
               const scannedText = result.getText();
               await stopScanner();
               els.barcode.value = scannedText;
-              await lookupBarcode(scannedText);
+              await lookupBarcode(scannedText, true);
             } else if (err && err.name !== "NotFoundException") {
               console.warn(err);
             }
           }
         );
         isScanning = true;
-        setStatus("Fotocamera attiva: inquadra il codice a barre.");
+        setStatus("📷 Inquadra il codice a barre!");
       } catch (err) {
         const reason = err && (err.name || err.message) ? ` (${err.name || err.message})` : "";
-        setStatus(`Fotocamera non avviata${reason}. Controlla i permessi del browser.`);
+        setStatus(`❌ Fotocamera non avviata${reason}.`);
         await stopScanner();
       } finally {
         isStartingScan = false;
@@ -469,15 +754,13 @@
     async function stopScanner() {
       isScanning = false;
       if (codeReader) {
-        try {
-          codeReader.reset();
-        } catch (e) {}
+        try { codeReader.reset(); } catch {}
       }
       if (els.video && els.video.srcObject) {
         try {
           els.video.srcObject.getTracks().forEach((t) => t.stop());
           els.video.srcObject = null;
-        } catch (e) {}
+        } catch {}
       }
       els.videoContainer.style.display = "none";
       els.btnStopScan.style.display = "none";
@@ -486,13 +769,16 @@
     function normalizeItem(raw) {
       if (!raw || typeof raw !== "object") return null;
       const name = String(raw.name || "").trim();
-      const expiry = isValidDateString(raw.expiry) ? raw.expiry : addDaysToToday(14);
       if (!name) return null;
+      const expiry = isValidDateString(raw.expiry) ? raw.expiry : addDaysToToday(14);
+      const categoryName = String(raw.categoryName || "Altro").trim() || "Altro";
+      const imageUrl = sanitizeImageUrl(raw.imageUrl);
       return {
         id: String(raw.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`),
         barcode: String(raw.barcode || "").trim(),
         name,
-        categoryName: String(raw.categoryName || "Altro").trim() || "Altro",
+        imageUrl,
+        categoryName,
         qty: Math.max(1, Math.floor(Number(raw.qty) || 1)),
         expiry
       };
@@ -518,12 +804,12 @@
       let persisted = true;
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned));
-      } catch (err) {
+      } catch {
         persisted = false;
       }
       renderList();
       if (!persisted) {
-        setStatus("Memoria permanente bloccata dal browser (es. navigazione privata). Dati tenuti nella sessione attuale.");
+        setStatus("⚠️ Memoria locale bloccata dal browser: dati tenuti in sessione.");
       } else if (successMessage) {
         setStatus(successMessage);
       }
@@ -540,8 +826,8 @@
 
     function setFilter(mode) {
       activeFilter = mode;
-      els.filterAll.classList.toggle("active", mode === "all");
-      els.filterUrgent.classList.toggle("active", mode === "urgent");
+      els.filterAll.className = mode === "all" ? "mini btn-yellow" : "mini btn-white";
+      els.filterUrgent.className = mode === "urgent" ? "mini btn-orange" : "mini btn-white";
       renderList();
     }
 
@@ -551,13 +837,14 @@
         return byExpiry !== 0 ? byExpiry : a.name.localeCompare(b.name, "it");
       });
 
-      const urgentCount = allItems.filter((item) => daysUntil(item.expiry) <= 3).length;
+      const totalPieces = allItems.reduce((sum, item) => sum + item.qty, 0);
+      els.totalCountBadge.textContent = `${totalPieces} pz`;
 
+      const urgentCount = allItems.filter((item) => daysUntil(item.expiry) <= 3).length;
       els.filterAll.textContent = `Tutti (${allItems.length})`;
-      els.filterUrgent.textContent = `In scadenza ≤ 3 gg (${urgentCount})`;
+      els.filterUrgent.textContent = `⚠️ Scad. ≤ 3 gg (${urgentCount})`;
 
       const query = els.searchInput.value.trim().toLowerCase();
-
       const filtered = allItems.filter((item) => {
         const diff = daysUntil(item.expiry);
         if (activeFilter === "urgent" && diff > 3) return false;
@@ -572,8 +859,8 @@
 
       if (!filtered.length) {
         els.list.innerHTML = allItems.length
-          ? "<p class='subtitle'>Nessun prodotto corrisponde ai filtri selezionati.</p>"
-          : "<p class='subtitle'>Nessun prodotto registrato in dispensa.</p>";
+          ? "<div class='empty-msg'>Nessun prodotto trovato con questo filtro.</div>"
+          : "<div class='empty-msg'>Dispensa vuota! Aggiungi il tuo primo prodotto qui sopra.</div>";
         return;
       }
 
@@ -586,18 +873,28 @@
           label = `Scaduto da ${Math.abs(diff)} gg (${item.expiry})`;
         } else if (diff <= 3) {
           cls = "soon";
-          label = diff === 0 ? `Scade oggi (${item.expiry})` : `Scade tra ${diff} gg (${item.expiry})`;
+          label = diff === 0 ? `Scade OGGI (${item.expiry})` : `Scade tra ${diff} gg (${item.expiry})`;
         }
+
+        const imgSrc = item.imageUrl ? escapeHtml(item.imageUrl) : fallbackCartoonImage(item.categoryName);
 
         return `
           <div class="item ${cls}">
-            <div>
-              <div class="item-title">${escapeHtml(item.name)} (x${item.qty})</div>
-              <div class="item-meta">${escapeHtml(item.categoryName)} · ${label}</div>
+            <div class="item-left">
+              <img class="item-img" data-category="${escapeHtml(item.categoryName)}" src="${imgSrc}" alt="${escapeHtml(item.name)}" />
+              <div>
+                <div class="item-title">
+                  ${escapeHtml(item.name)}
+                  <span class="qty-pill">x${item.qty}</span>
+                </div>
+                <div class="item-meta">${escapeHtml(item.categoryName)} · ${label}</div>
+              </div>
             </div>
-            <div class="actions">
-              <button type="button" class="secondary small" onclick="changeQty('${escapeHtml(item.id)}', -1)">-1</button>
-              <button type="button" class="danger small" onclick="deleteItem('${escapeHtml(item.id)}')">Elimina</button>
+            <div class="item-actions">
+              <button type="button" class="mini btn-blue" title="Aumenta quantità" onclick="changeQty('${escapeHtml(item.id)}', 1)">+1</button>
+              <button type="button" class="mini btn-white" title="Diminuisci quantità" onclick="changeQty('${escapeHtml(item.id)}', -1)">-1</button>
+              <button type="button" class="mini btn-yellow" onclick="openEditModal('${escapeHtml(item.id)}')">✏️ Modifica</button>
+              <button type="button" class="mini btn-red" onclick="deleteItem('${escapeHtml(item.id)}')">🗑️</button>
             </div>
           </div>
         `;
@@ -622,14 +919,80 @@
     };
 
     window.deleteItem = function(id) {
-      saveItems(loadItems().filter((item) => item.id !== id));
+      saveItems(loadItems().filter((item) => item.id !== id), "🗑️ Prodotto rimosso.");
     };
+
+    function ensureEditCategoryOption(catName) {
+      const exists = Array.from(els.editCategory.options).some((opt) => opt.value === catName);
+      if (!exists) {
+        const opt = document.createElement("option");
+        opt.value = catName;
+        opt.textContent = `📦 ${catName}`;
+        els.editCategory.appendChild(opt);
+      }
+      els.editCategory.value = catName;
+    }
+
+    window.openEditModal = function(id) {
+      const item = loadItems().find((i) => i.id === id);
+      if (!item) return;
+
+      els.editId.value = item.id;
+      els.editName.value = item.name;
+      els.editBarcode.value = item.barcode || "";
+      els.editImageUrl.value = item.imageUrl || "";
+      ensureEditCategoryOption(item.categoryName);
+      els.editQty.value = item.qty;
+      els.editExpiry.value = item.expiry;
+
+      els.editModal.classList.add("open");
+      els.editModal.setAttribute("aria-hidden", "false");
+    };
+
+    function closeEditModal() {
+      els.editModal.classList.remove("open");
+      els.editModal.setAttribute("aria-hidden", "true");
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && els.editModal.classList.contains("open")) {
+        closeEditModal();
+      }
+    });
+
+    els.btnCancelEdit.addEventListener("click", closeEditModal);
+    els.editModal.addEventListener("click", (e) => {
+      if (e.target === els.editModal) closeEditModal();
+    });
+
+    els.editForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const id = els.editId.value;
+      const updated = normalizeItem({
+        id,
+        name: els.editName.value.trim(),
+        barcode: els.editBarcode.value.trim(),
+        imageUrl: els.editImageUrl.value.trim(),
+        categoryName: els.editCategory.value,
+        qty: Math.max(1, Math.floor(Number(els.editQty.value) || 1)),
+        expiry: els.editExpiry.value
+      });
+
+      if (!updated) return;
+
+      const items = loadItems().map((item) => (item.id === id ? updated : item));
+      saveItems(items, `✏️ Aggiornato: ${updated.name}.`);
+      closeEditModal();
+    });
 
     els.btnScan.addEventListener("click", startScanner);
     els.btnStopScan.addEventListener("click", stopScanner);
     els.category.addEventListener("change", updateEstimatedExpiry);
+    els.name.addEventListener("input", updatePreviewBox);
+    els.imageUrl.addEventListener("input", updatePreviewBox);
     els.barcode.addEventListener("change", () => {
-      if (els.barcode.value.trim()) lookupBarcode(els.barcode.value);
+      const code = els.barcode.value.trim();
+      if (code) lookupBarcode(code);
     });
     els.searchInput.addEventListener("input", renderList);
     els.filterAll.addEventListener("click", () => setFilter("all"));
@@ -641,9 +1004,14 @@
         await stopScanner();
       }
 
+      const typedCode = els.barcode.value.trim();
+      if (typedCode && !els.name.value.trim() && typedCode !== lastLookedUpCode) {
+        await lookupBarcode(typedCode, true);
+      }
+
       const productName = els.name.value.trim();
       if (!productName) {
-        setStatus("Inserisci un nome prodotto prima di salvare.");
+        setStatus("⚠️ Inserisci un nome prodotto prima di salvare.");
         return;
       }
 
@@ -656,8 +1024,9 @@
         id: (typeof crypto !== "undefined" && crypto.randomUUID)
           ? crypto.randomUUID()
           : `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        barcode: els.barcode.value.trim(),
+        barcode: typedCode,
         name: productName,
+        imageUrl: els.imageUrl.value.trim(),
         categoryName,
         qty: Math.max(1, Math.floor(Number(els.qty.value) || 1)),
         expiry: expiryValue
@@ -669,11 +1038,14 @@
       const savedCategoryVal = els.category.value;
       els.form.reset();
       els.barcode.value = "";
+      els.imageUrl.value = "";
+      lastLookedUpCode = "";
       els.category.value = savedCategoryVal;
       els.qty.value = 1;
       updateEstimatedExpiry();
+      updatePreviewBox();
 
-      saveItems(items, `Salvato: ${newItem.name}.`);
+      saveItems(items, `🎉 Salvato: ${newItem.name} (x${newItem.qty}).`);
     });
 
     els.btnExport.addEventListener("click", () => {
@@ -681,7 +1053,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `dispensa-backup-${formatLocalDate(new Date())}.json`;
+      a.download = `dispensa-cartoon-backup-${formatLocalDate(new Date())}.json`;
       a.click();
       URL.revokeObjectURL(url);
     });
@@ -695,17 +1067,18 @@
         const parsed = JSON.parse(text);
         if (Array.isArray(parsed)) {
           const validItems = parsed.map(normalizeItem).filter(Boolean);
-          saveItems(validItems, `Backup importato (${validItems.length} prodotti).`);
+          saveItems(validItems, `📂 Backup importato (${validItems.length} prodotti).`);
         } else {
-          setStatus("File di backup non valido.");
+          setStatus("⚠️ File di backup non valido.");
         }
       } catch {
-        setStatus("File di backup non valido.");
+        setStatus("⚠️ File di backup non valido.");
       }
       e.target.value = "";
     });
 
     updateEstimatedExpiry();
+    updatePreviewBox();
     renderList();
   </script>
 </body>
