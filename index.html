@@ -40,7 +40,7 @@
       background-image: radial-gradient(#fed7aa 1.5px, transparent 1.5px);
       background-size: 18px 18px;
       color: var(--ink);
-      max-width: 700px;
+      max-width: 720px;
       margin-inline: auto;
     }
 
@@ -123,6 +123,14 @@
       outline: none;
     }
 
+    input[type="range"] {
+      padding: 4px 0;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      margin-bottom: 0;
+    }
+
     input[type="date"] {
       -webkit-appearance: none;
       appearance: none;
@@ -147,12 +155,19 @@
 
     .row {
       display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr);
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .row-equal {
+      display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       gap: 10px;
       min-width: 0;
     }
 
-    .row > div {
+    .row > div, .row-equal > div {
       min-width: 0;
       overflow: hidden;
     }
@@ -184,12 +199,45 @@
     button.btn-white { background: var(--surface); }
 
     button.mini {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
       width: auto;
       padding: 6px 10px;
       font-size: 0.84rem;
       border-radius: 11px;
       margin-bottom: 0;
+    }
+
+    .photo-picker-row {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+      margin-bottom: 12px;
+    }
+
+    .photo-picker-row input {
+      margin-bottom: 0;
+      flex: 1 1 auto;
+    }
+
+    .camera-icon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: auto;
+      flex-shrink: 0;
+      padding: 0 14px;
+      margin-bottom: 0;
+      background: var(--yellow);
+    }
+
+    .cam-svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
     }
 
     .preview-box {
@@ -205,8 +253,8 @@
     }
 
     .preview-thumb {
-      width: 60px;
-      height: 60px;
+      width: 64px;
+      height: 64px;
       border-radius: 12px;
       border: 2.5px solid var(--border);
       object-fit: cover;
@@ -219,6 +267,7 @@
       font-weight: 700;
       color: var(--muted);
       min-width: 0;
+      flex: 1;
     }
 
     .preview-info strong {
@@ -231,22 +280,52 @@
       white-space: nowrap;
     }
 
+    #cameraSection {
+      display: none;
+      margin-bottom: 12px;
+    }
+
     #videoContainer {
       position: relative;
       width: 100%;
       border-radius: 16px;
       border: 3px solid var(--border);
       overflow: hidden;
-      margin-bottom: 12px;
-      display: none;
+      margin-bottom: 10px;
       background: #18181b;
     }
 
     video {
       width: 100%;
-      height: 230px;
+      height: 240px;
       object-fit: cover;
       display: block;
+      transform-origin: center center;
+      transition: transform 0.12s ease-out;
+    }
+
+    .zoom-box {
+      background: var(--surface-2);
+      border: 2.5px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 12px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .zoom-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      font-weight: 900;
+      margin-bottom: 6px;
+    }
+
+    .zoom-buttons {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
     }
 
     .status {
@@ -368,7 +447,7 @@
 
     .modal-card {
       width: 100%;
-      max-width: 480px;
+      max-width: 500px;
       max-height: 90vh;
       overflow-y: auto;
       background: var(--surface);
@@ -379,7 +458,10 @@
       overflow-x: clip;
     }
 
-    @media (max-width: 520px) {
+    @media (max-width: 560px) {
+      .row {
+        grid-template-columns: minmax(0, 1fr);
+      }
       .item {
         flex-direction: column;
         align-items: stretch;
@@ -394,7 +476,7 @@
   <header class="hero">
     <div>
       <h1>Dispensa & Scadenze</h1>
-      <p>Scansione codice a barre, foto prodotto e controllo scadenze.</p>
+      <p>Scansione codice a barre, categorie estese, foto e scadenze.</p>
     </div>
     <div class="badge-box" id="totalCountBadge">0 pz</div>
   </header>
@@ -402,13 +484,28 @@
   <section class="card">
     <h2 class="section-title">Aggiungi prodotto</h2>
 
-    <div class="row">
+    <div class="row-equal">
       <button type="button" id="btnScan" class="btn-blue">Scansiona codice</button>
       <button type="button" id="btnStopScan" class="btn-orange" style="display:none;">Ferma fotocamera</button>
     </div>
 
-    <div id="videoContainer">
-      <video id="interactive" autoplay muted playsinline></video>
+    <div id="cameraSection">
+      <div id="videoContainer">
+        <video id="interactive" autoplay muted playsinline></video>
+      </div>
+
+      <div class="zoom-box">
+        <div class="zoom-header">
+          <label for="zoomSlider" style="margin:0;">Zoom fotocamera</label>
+          <span id="zoomValue">1.0x</span>
+        </div>
+        <input type="range" id="zoomSlider" min="1" max="3" step="0.1" value="1" />
+        <div class="zoom-buttons">
+          <button type="button" id="zoom1x" class="mini btn-white">1x</button>
+          <button type="button" id="zoom2x" class="mini btn-yellow">2x</button>
+          <button type="button" id="zoom3x" class="mini btn-yellow">3x</button>
+        </div>
+      </div>
     </div>
 
     <div id="statusMsg" class="status">Pronto. Scansiona un codice a barre o compila i campi.</div>
@@ -417,33 +514,34 @@
       <img id="previewImg" class="preview-thumb" src="" alt="Anteprima prodotto" />
       <div class="preview-info">
         <strong id="previewTitle">Anteprima prodotto</strong>
-        <span id="previewSub">Foto automatica da codice a barre o sigla di categoria.</span>
+        <span id="previewSub">Foto automatica da codice a barre oppure scattata con la fotocamera.</span>
       </div>
     </div>
 
     <form id="productForm">
-      <label for="barcode">Codice a barre (EAN)</label>
+      <label for="barcode">Codice a barre (EAN / UPC / Code-128)</label>
       <input type="text" id="barcode" autocomplete="off" inputmode="numeric" placeholder="Es. 8001505005822" />
 
       <label for="name">Nome prodotto</label>
       <input type="text" id="name" required placeholder="Es. Latte parzialmente scremato" />
 
-      <label for="imageUrl">URL foto prodotto</label>
-      <input type="url" id="imageUrl" placeholder="Compilato automaticamente se disponibile..." />
+      <label for="imageUrl">Foto prodotto (automatica, URL o scatto fotocamera)</label>
+      <div class="photo-picker-row">
+        <input type="text" id="imageUrl" placeholder="Compilata in automatico o scatta una foto..." />
+        <button type="button" id="btnTakePhoto" class="camera-icon-btn" title="Scatta foto del prodotto" aria-label="Scatta foto del prodotto">
+          <svg class="cam-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+            <circle cx="12" cy="13" r="4"></circle>
+          </svg>
+          <span>Foto</span>
+        </button>
+        <input type="file" id="photoFileInput" accept="image/*" capture="environment" style="display:none;" />
+      </div>
 
       <div class="row">
         <div>
-          <label for="category">Categoria (stima gg)</label>
-          <select id="category">
-            <option value="Latticini|10">Latticini (+10 gg)</option>
-            <option value="Carne/Pesce|4">Carne / Pesce (+4 gg)</option>
-            <option value="Verdura Fresca|6">Verdura / Frutta (+6 gg)</option>
-            <option value="Pasta/Riso|365">Pasta / Riso (+365 gg)</option>
-            <option value="Scatolame|730">Scatolame (+730 gg)</option>
-            <option value="Surgelati|180">Surgelati (+180 gg)</option>
-            <option value="Bevande|90">Bevande (+90 gg)</option>
-            <option value="Altro|14">Altro (+14 gg)</option>
-          </select>
+          <label for="category">Categoria e prospetto scadenza</label>
+          <select id="category"></select>
         </div>
 
         <div>
@@ -452,7 +550,7 @@
         </div>
       </div>
 
-      <label for="expiry">Data di scadenza</label>
+      <label for="expiry">Data di scadenza (calcolata dal prospetto, modificabile)</label>
       <input type="date" id="expiry" required />
 
       <button type="submit">Salva prodotto</button>
@@ -484,25 +582,26 @@
         <label for="editName">Nome prodotto</label>
         <input type="text" id="editName" required />
 
-        <label for="editBarcode">Codice a barre (EAN)</label>
+        <label for="editBarcode">Codice a barre</label>
         <input type="text" id="editBarcode" inputmode="numeric" />
 
-        <label for="editImageUrl">URL foto</label>
-        <input type="url" id="editImageUrl" placeholder="https://..." />
+        <label for="editImageUrl">Foto prodotto (URL o scatto fotocamera)</label>
+        <div class="photo-picker-row">
+          <input type="text" id="editImageUrl" placeholder="https://... oppure scatta una foto" />
+          <button type="button" id="btnEditTakePhoto" class="camera-icon-btn" title="Scatta nuova foto" aria-label="Scatta nuova foto">
+            <svg class="cam-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+              <circle cx="12" cy="13" r="4"></circle>
+            </svg>
+            <span>Foto</span>
+          </button>
+          <input type="file" id="editPhotoFileInput" accept="image/*" capture="environment" style="display:none;" />
+        </div>
 
         <div class="row">
           <div>
             <label for="editCategory">Categoria</label>
-            <select id="editCategory">
-              <option value="Latticini">Latticini</option>
-              <option value="Carne/Pesce">Carne / Pesce</option>
-              <option value="Verdura Fresca">Verdura / Frutta</option>
-              <option value="Pasta/Riso">Pasta / Riso</option>
-              <option value="Scatolame">Scatolame</option>
-              <option value="Surgelati">Surgelati</option>
-              <option value="Bevande">Bevande</option>
-              <option value="Altro">Altro</option>
-            </select>
+            <select id="editCategory"></select>
           </div>
           <div>
             <label for="editQty">Quantità</label>
@@ -513,7 +612,7 @@
         <label for="editExpiry">Data di scadenza</label>
         <input type="date" id="editExpiry" required />
 
-        <div class="row">
+        <div class="row-equal">
           <button type="submit">Salva modifiche</button>
           <button type="button" id="btnCancelEdit" class="btn-white">Annulla</button>
         </div>
@@ -522,7 +621,75 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "dispensa_prodotti_v2";
+    const STORAGE_KEY = "dispensa_prodotti_v3";
+
+    // Ordine studiato per far prevalere categorie piu specifiche prima di quelle generiche
+    const CATEGORY_PROSPECTUS = [
+      {
+        group: "Surgelati e conserve specifiche",
+        items: [
+          { name: "Surgelati e gelati", days: 180, tag: "FRZ", keywords: ["surgel", "congelat", "gelato", "sofficini", "bastoncini", "frozen", "ice cream"] },
+          { name: "Conserve, passate e sughi", days: 540, tag: "CNS", keywords: ["passata", "pelati", "polpa di pomodoro", "sugo", "pesto", "conserva", "concentrato", "tomato sauce", "pasta sauce"] },
+          { name: "Scatolame (tonno, carne, legumi)", days: 730, tag: "SCT", keywords: ["tonno in scatola", "tonno all'olio", "carne in scatola", "fagioli in scatola", "ceci in scatola", "piselli in scatola", "scatola", "canned", "tinned"] },
+          { name: "Pasta fresca e gnocchi", days: 15, tag: "PSF", keywords: ["pasta fresca", "gnocchi", "tortellini", "ravioli", "tagliatelle fresche", "fresh pasta"] },
+          { name: "Piatti pronti e gastronomia", days: 4, tag: "GAS", keywords: ["piatto pronto", "piatti pronti", "gastronomia", "insalatona", "tramezzino", "lasagna", "ready meal"] }
+        ]
+      },
+      {
+        group: "Freschi e deperibili",
+        items: [
+          { name: "Pesce fresco e frutti di mare", days: 3, tag: "PSC", keywords: ["pesce", "salmone", "orata", "branzino", "spigola", "gamber", "cozze", "vongole", "seppie", "calamari", "fish", "salmon", "shrimp", "seafood"] },
+          { name: "Carne fresca", days: 4, tag: "CRN", keywords: ["carne", "manzo", "vitello", "maiale", "pollo", "tacchino", "agnello", "salsiccia", "wurstel", "meat", "beef", "pork", "chicken", "turkey", "poultry"] },
+          { name: "Affettati e salumi", days: 7, tag: "SAL", keywords: ["prosciutto", "salame", "mortadella", "bresaola", "coppa", "speck", "affettat", "salumi", "ham", "salami"] },
+          { name: "Formaggi", days: 45, tag: "FRG", keywords: ["formagg", "mozzarella", "ricotta", "stracchino", "mascarpone", "caciotta", "pecorino", "grana", "parmigiano", "gorgonzola", "cheese"] },
+          { name: "Latticini freschi", days: 10, tag: "LAT", keywords: ["latte", "latticini", "yogurt", "yoghurt", "panna", "kefir", "budino", "milk", "dairy", "cream"] },
+          { name: "Uova", days: 21, tag: "UOV", keywords: ["uova", "uovo", "eggs", "egg"] },
+          { name: "Verdura e ortaggi freschi", days: 6, tag: "VRD", keywords: ["verdura", "ortagg", "insalata", "pomodor", "patat", "zucchin", "melanzan", "carot", "peperon", "spinac", "vegetable", "salad", "tomato", "potato"] },
+          { name: "Frutta fresca", days: 7, tag: "FRT", keywords: ["frutta", "mela", "mele", "banana", "banane", "arancia", "arance", "limone", "limoni", "fragol", "pesca", "pesche", "pera", "pere", "uva", "kiwi", "fruit", "apple", "banana", "orange", "lemon"] },
+          { name: "Pane e prodotti da forno freschi", days: 5, tag: "PAN", keywords: ["pane", "focaccia", "pizza fresca", "cornetto", "brioche", "panini", "piadina", "bread", "bakery", "pastry"] }
+        ]
+      },
+      {
+        group: "Dispensa secca e condimenti",
+        items: [
+          { name: "Pasta, riso e cereali", days: 365, tag: "PST", keywords: ["pasta", "spaghetti", "penne", "fusilli", "rigatoni", "riso", "farro", "orzo", "couscous", "avena", "cereali", "rice", "cereal", "oat"] },
+          { name: "Farine, lieviti e preparati", days: 270, tag: "FAR", keywords: ["farina", "lievito", "amido", "fecola", "pangrattato", "preparato per", "flour", "yeast", "baking"] },
+          { name: "Legumi e cereali secchi", days: 540, tag: "LEG", keywords: ["lenticchi", "ceci", "fagioli", "piselli", "legumi", "beans", "lentils", "chickpeas", "peas"] },
+          { name: "Sottaceti, sottoli e olive", days: 365, tag: "OLI", keywords: ["olive", "sottacet", "sottol", "capperi", "carciof", "cetriolin", "pickles", "olives"] },
+          { name: "Condimenti, oli, aceti e spezie", days: 540, tag: "CND", keywords: ["olio", "aceto", "sale", "pepe", "spezi", "origano", "basilico", "maionese", "senape", "ketchup", "dado", "oil", "vinegar", "spice", "condiment"] },
+          { name: "Biscotti, merendine e snack dolci", days: 120, tag: "DOL", keywords: ["biscott", "frollin", "merendin", "wafer", "croissant", "plumcake", "cookie", "biscuit", "cake"] },
+          { name: "Snack salati, patatine e frutta secca", days: 150, tag: "SNK", keywords: ["patatine", "cracker", "grissin", "tarall", "salatini", "arachid", "mandorl", "noci", "nocciole", "pistacch", "chips", "crackers", "nuts"] },
+          { name: "Cioccolato, caramelle e cacao", days: 180, tag: "COC", keywords: ["cioccolat", "cioccolino", "caramell", "gomme da masticare", "chewing gum", "cacao", "chocolate", "candy", "sweet"] },
+          { name: "Marmellate, miele e creme spalmabili", days: 365, tag: "MRM", keywords: ["marmellata", "confettura", "miele", "crema spalmabile", "nocciolata", "nutella", "jam", "honey", "spread"] },
+          { name: "Caffe, te, tisane e solubili", days: 365, tag: "CFF", keywords: ["caffe", "caffè", "moka", "capsule", "cialde", "tè", "tisana", "camomilla", "orzo solubile", "coffee", "tea", "infusion"] }
+        ]
+      },
+      {
+        group: "Bevande",
+        items: [
+          { name: "Acqua", days: 365, tag: "ACQ", keywords: ["acqua", "naturale", "frizzante", "effervescente", "water", "mineral water"] },
+          { name: "Bevande, succhi e bibite", days: 90, tag: "BEV", keywords: ["succo", "nettar", "bibita", "cola", "aranciata", "chinotto", "sport drink", "energy drink", "beverage", "drink", "juice", "soda"] },
+          { name: "Birra, vino e alcolici", days: 365, tag: "ALC", keywords: ["birra", "vino", "spumante", "prosecco", "liquore", "amaro", "beer", "wine", "alcohol"] }
+        ]
+      },
+      {
+        group: "Casa, persona, bambini e animali",
+        items: [
+          { name: "Detersivi e pulizia casa", days: 730, tag: "DET", keywords: ["detersiv", "detergente", "candeggina", "sgrassatore", "ammorbidente", "lavastoviglie", "lavatrice", "pavimenti", "spugna", "detergent", "cleaner", "bleach"] },
+          { name: "Carta, monouso e sacchetti", days: 1095, tag: "CRT", keywords: ["carta igienica", "scottex", "asciugatutto", "fazzolett", "tovagliol", "pellicola", "alluminio", "carta forno", "sacchetti", "rifiuti", "tissue", "paper towel", "foil"] },
+          { name: "Igiene personale e bagno", days: 540, tag: "IGP", keywords: ["bagnoschiuma", "docciaschiuma", "shampoo", "balsamo", "sapone", "dentifricio", "spazzolino", "collutorio", "deodorante", "rasoio", "assorbenti", "soap", "shampoo", "toothpaste", "deodorant"] },
+          { name: "Cosmesi, creme e solari (PAO)", days: 180, tag: "COS", keywords: ["crema viso", "crema corpo", "crema mani", "solare", "protezione solare", "struccante", "siero", "trucco", "rossetto", "mascara", "profumo", "cosmetic", "sunscreen", "lotion"] },
+          { name: "Farmaci, integratori e parafarmacia", days: 365, tag: "MED", keywords: ["integratore", "vitamina", "magnesio", "fermenti", "cerott", "garza", "disinfettante", "sciroppo", "compress", "supplement", "vitamin", "pharmacy"] },
+          { name: "Prodotti per neonati e infanzia", days: 240, tag: "INF", keywords: ["omogeneizzat", "latte crescita", "pannolini", "salviette baby", "pappa", "baby", "infant", "diaper"] },
+          { name: "Cibo e accessori animali", days: 365, tag: "PET", keywords: ["croccantini", "cibo per cani", "cibo per gatti", "paté gatti", "bocconcini", "lettiera", "cane", "gatto", "pet", "dog", "cat"] },
+          { name: "Altro / Generico", days: 14, tag: "ALT", keywords: [] }
+        ]
+      }
+    ];
+
+    const FLAT_CATEGORIES = CATEGORY_PROSPECTUS.flatMap((grp) => grp.items);
+    const CATEGORY_MAP = new Map(FLAT_CATEGORIES.map((item) => [item.name, item]));
+
     let memoryFallback = [];
     let codeReader = null;
     let isScanning = false;
@@ -530,13 +697,21 @@
     let isLookingUp = false;
     let lastLookedUpCode = "";
     let activeFilter = "all";
+    let currentVideoTrack = null;
+    let hardwareZoomSupported = false;
 
     const els = {
       totalCountBadge: document.getElementById("totalCountBadge"),
       btnScan: document.getElementById("btnScan"),
       btnStopScan: document.getElementById("btnStopScan"),
+      cameraSection: document.getElementById("cameraSection"),
       videoContainer: document.getElementById("videoContainer"),
       video: document.getElementById("interactive"),
+      zoomSlider: document.getElementById("zoomSlider"),
+      zoomValue: document.getElementById("zoomValue"),
+      zoom1x: document.getElementById("zoom1x"),
+      zoom2x: document.getElementById("zoom2x"),
+      zoom3x: document.getElementById("zoom3x"),
       statusMsg: document.getElementById("statusMsg"),
       previewImg: document.getElementById("previewImg"),
       previewTitle: document.getElementById("previewTitle"),
@@ -545,6 +720,8 @@
       barcode: document.getElementById("barcode"),
       name: document.getElementById("name"),
       imageUrl: document.getElementById("imageUrl"),
+      btnTakePhoto: document.getElementById("btnTakePhoto"),
+      photoFileInput: document.getElementById("photoFileInput"),
       category: document.getElementById("category"),
       qty: document.getElementById("qty"),
       expiry: document.getElementById("expiry"),
@@ -561,15 +738,55 @@
       editName: document.getElementById("editName"),
       editBarcode: document.getElementById("editBarcode"),
       editImageUrl: document.getElementById("editImageUrl"),
+      btnEditTakePhoto: document.getElementById("btnEditTakePhoto"),
+      editPhotoFileInput: document.getElementById("editPhotoFileInput"),
       editCategory: document.getElementById("editCategory"),
       editQty: document.getElementById("editQty"),
       editExpiry: document.getElementById("editExpiry"),
       btnCancelEdit: document.getElementById("btnCancelEdit")
     };
 
+    function populateCategorySelects() {
+      els.category.innerHTML = "";
+      els.editCategory.innerHTML = "";
+
+      CATEGORY_PROSPECTUS.forEach((grp) => {
+        const optGroupAdd = document.createElement("optgroup");
+        optGroupAdd.label = grp.group;
+
+        const optGroupEdit = document.createElement("optgroup");
+        optGroupEdit.label = grp.group;
+
+        grp.items.forEach((item) => {
+          const optAdd = document.createElement("option");
+          optAdd.value = `${item.name}|${item.days}`;
+          optAdd.textContent = `${item.name} (+${item.days} gg)`;
+          optGroupAdd.appendChild(optAdd);
+
+          const optEdit = document.createElement("option");
+          optEdit.value = item.name;
+          optEdit.textContent = `${item.name} (+${item.days} gg)`;
+          optGroupEdit.appendChild(optEdit);
+        });
+
+        els.category.appendChild(optGroupAdd);
+        els.editCategory.appendChild(optGroupEdit);
+      });
+
+      els.category.value = "Altro / Generico|14";
+      els.editCategory.value = "Altro / Generico";
+    }
+
+    function getCategoryMeta(categoryName) {
+      return CATEGORY_MAP.get(categoryName) || { name: categoryName || "Altro / Generico", days: 14, tag: "ALT" };
+    }
+
     function sanitizeImageUrl(rawUrl) {
       const trimmed = String(rawUrl || "").trim();
       if (!trimmed) return "";
+      if (/^data:image\/(jpeg|jpg|png|webp);base64,[A-Za-z0-9+/=]+$/i.test(trimmed)) {
+        return trimmed;
+      }
       try {
         const parsed = new URL(trimmed);
         if (parsed.protocol === "https:" || parsed.protocol === "http:") {
@@ -579,18 +796,44 @@
       return "";
     }
 
-    function fallbackCategoryImage(categoryName = "Altro") {
-      const labelMap = {
-        "Latticini": "LAT",
-        "Carne/Pesce": "CAR",
-        "Verdura Fresca": "VRD",
-        "Pasta/Riso": "PST",
-        "Scatolame": "SCT",
-        "Surgelati": "FRZ",
-        "Bevande": "BEV",
-        "Altro": "PRO"
-      };
-      const code = labelMap[categoryName] || "PRO";
+    function compressPhotoFileToDataUrl(file, maxSize = 480, quality = 0.72) {
+      return new Promise((resolve, reject) => {
+        if (!file || !file.type.startsWith("image/")) {
+          reject(new Error("File immagine non valido"));
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = new Image();
+          img.onload = () => {
+            let { width, height } = img;
+            if (width > maxSize || height > maxSize) {
+              if (width >= height) {
+                height = Math.round((height * maxSize) / width);
+                width = maxSize;
+              } else {
+                width = Math.round((width * maxSize) / height);
+                height = maxSize;
+              }
+            }
+            const canvas = document.createElement("canvas");
+            canvas.width = Math.max(1, width);
+            canvas.height = Math.max(1, height);
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL("image/jpeg", quality));
+          };
+          img.onerror = () => reject(new Error("Impossibile leggere l'immagine"));
+          img.src = reader.result;
+        };
+        reader.onerror = () => reject(new Error("Errore caricamento file"));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function fallbackCategoryImage(categoryName = "Altro / Generico") {
+      const meta = getCategoryMeta(categoryName);
+      const code = meta.tag || "PRO";
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"><rect width="120" height="120" rx="20" fill="#fef08a"/><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="30" fill="#18181b">${code}</text></svg>`;
       return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
     }
@@ -603,12 +846,14 @@
       els.previewTitle.textContent = prodName;
       if (safeUrl) {
         els.previewImg.src = safeUrl;
-        els.previewSub.textContent = "Immagine associata al prodotto.";
+        els.previewSub.textContent = safeUrl.startsWith("data:image/")
+          ? "Foto scattata / caricata in locale."
+          : "Immagine associata al prodotto.";
       } else {
         els.previewImg.src = fallbackCategoryImage(catName);
         els.previewSub.textContent = els.imageUrl.value.trim()
           ? "URL non valido: mostrata sigla di categoria."
-          : "Nessuna immagine esterna: mostrata sigla di categoria.";
+          : "Nessuna immagine: usa il tasto Foto o la sigla di categoria.";
       }
     }
 
@@ -620,7 +865,7 @@
 
     els.list.addEventListener("error", (e) => {
       if (e.target && e.target.classList && e.target.classList.contains("item-img")) {
-        const catName = e.target.dataset.category || "Altro";
+        const catName = e.target.dataset.category || "Altro / Generico";
         const fb = fallbackCategoryImage(catName);
         if (e.target.src !== fb) {
           e.target.src = fb;
@@ -628,9 +873,98 @@
       }
     }, true);
 
+    els.btnTakePhoto.addEventListener("click", () => {
+      els.photoFileInput.click();
+    });
+
+    els.photoFileInput.addEventListener("change", async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      setStatus("Elaborazione foto prodotto...");
+      try {
+        const compressed = await compressPhotoFileToDataUrl(file);
+        els.imageUrl.value = compressed;
+        updatePreviewBox();
+        setStatus("Foto prodotto impostata.");
+      } catch {
+        setStatus("Impossibile acquisire la foto dal dispositivo.");
+      }
+      e.target.value = "";
+    });
+
+    els.btnEditTakePhoto.addEventListener("click", () => {
+      els.editPhotoFileInput.click();
+    });
+
+    els.editPhotoFileInput.addEventListener("change", async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      try {
+        const compressed = await compressPhotoFileToDataUrl(file);
+        els.editImageUrl.value = compressed;
+        setStatus("Nuova foto pronta per il salvataggio modifiche.");
+      } catch {
+        setStatus("Impossibile acquisire la foto dal dispositivo.");
+      }
+      e.target.value = "";
+    });
+
     function setStatus(msg) {
       els.statusMsg.textContent = msg;
     }
+
+    function setupZoomControlsForTrack(track) {
+      currentVideoTrack = track || null;
+      hardwareZoomSupported = false;
+      els.zoomSlider.min = "1";
+      els.zoomSlider.max = "3";
+      els.zoomSlider.step = "0.1";
+      els.zoomSlider.value = "1";
+      els.zoomValue.textContent = "1.0x";
+      els.video.style.transform = "scale(1)";
+
+      if (track && typeof track.getCapabilities === "function") {
+        try {
+          const caps = track.getCapabilities();
+          if (caps && typeof caps.zoom === "object" && caps.zoom !== null) {
+            const minZ = Number(caps.zoom.min) || 1;
+            const maxZ = Math.min(Number(caps.zoom.max) || 3, 6);
+            const stepZ = Number(caps.zoom.step) || 0.1;
+            if (maxZ > minZ) {
+              hardwareZoomSupported = true;
+              els.zoomSlider.min = String(minZ);
+              els.zoomSlider.max = String(maxZ);
+              els.zoomSlider.step = String(stepZ);
+              els.zoomSlider.value = String(minZ);
+              els.zoomValue.textContent = `${Number(minZ).toFixed(1)}x`;
+            }
+          }
+        } catch {}
+      }
+    }
+
+    async function applyZoomLevel(level) {
+      const minZ = Number(els.zoomSlider.min) || 1;
+      const maxZ = Number(els.zoomSlider.max) || 3;
+      const clamped = Math.max(minZ, Math.min(maxZ, Number(level) || 1));
+
+      els.zoomSlider.value = String(clamped);
+      els.zoomValue.textContent = `${clamped.toFixed(1)}x`;
+
+      if (hardwareZoomSupported && currentVideoTrack && typeof currentVideoTrack.applyConstraints === "function") {
+        try {
+          await currentVideoTrack.applyConstraints({ advanced: [{ zoom: clamped }] });
+          els.video.style.transform = "scale(1)";
+          return;
+        } catch {}
+      }
+      els.video.style.transform = `scale(${clamped})`;
+    }
+
+    els.zoomSlider.addEventListener("input", () => applyZoomLevel(els.zoomSlider.value));
+    els.zoom1x.addEventListener("click", () => applyZoomLevel(1));
+    els.zoom2x.addEventListener("click", () => applyZoomLevel(2));
+    els.zoom3x.addEventListener("click", () => applyZoomLevel(3));
 
     function formatLocalDate(dateObj) {
       const y = dateObj.getFullYear();
@@ -667,62 +1001,10 @@
       const rawCat = Array.isArray(categoriesData) ? categoriesData.join(" ") : String(categoriesData);
       const combined = `${rawCat} ${String(productText)}`.toLowerCase();
 
-      const rules = [
-        {
-          value: "Latticini|10",
-          patterns: [
-            "milk", "dairy", "yogurt", "yoghurt", "cheese", "cream", "butter", "kefir",
-            "latte", "latticini", "formagg", "yogurt", "panna", "burro", "mozzarella",
-            "ricotta", "stracchino", "mascarpone", "caciotta", "pecorino", "grana", "parmigiano"
-          ]
-        },
-        {
-          value: "Carne/Pesce|4",
-          patterns: [
-            "meat", "fish", "poultry", "beef", "pork", "chicken", "turkey", "salmon", "tuna", "shrimp",
-            "carne", "pesce", "pollo", "tacchino", "manzo", "maiale", "vitello", "salmone",
-            "tonno fresco", "gamber", "prosciutto", "salumi", "affettat", "wurstel", "salsiccia", "bresaola"
-          ]
-        },
-        {
-          value: "Surgelati|180",
-          patterns: [
-            "frozen", "surgel", "ice-cream", "ice cream", "gelato", "sofficini", "bastoncini"
-          ]
-        },
-        {
-          value: "Verdura Fresca|6",
-          patterns: [
-            "vegetable", "fruit", "salad", "tomato", "potato", "apple", "banana",
-            "verdura", "frutta", "ortagg", "insalata", "pomodor", "patat", "mel", "banan", "limon", "aranc"
-          ]
-        },
-        {
-          value: "Pasta/Riso|365",
-          patterns: [
-            "pasta", "rice", "spaghetti", "penne", "fusilli", "rigatoni", "riso",
-            "cereal", "flour", "farina", "couscous", "orzo", "farro", "avena", "fiocchi"
-          ]
-        },
-        {
-          value: "Scatolame|730",
-          patterns: [
-            "canned", "conserv", "beans", "chickpeas", "lentils",
-            "scatola", "fagiol", "ceci", "lenticchi", "pelat", "passata", "polpa di pomodoro", "legum", "tonno all'olio"
-          ]
-        },
-        {
-          value: "Bevande|90",
-          patterns: [
-            "beverage", "drink", "water", "juice", "soda", "tea", "coffee",
-            "bevand", "acqua", "succo", "bibit", "caffe", "caffè", "tisana", "birra", "vino"
-          ]
-        }
-      ];
-
-      for (const rule of rules) {
-        if (rule.patterns.some((p) => combined.includes(p))) {
-          return rule.value;
+      for (const item of FLAT_CATEGORIES) {
+        if (!item.keywords || !item.keywords.length) continue;
+        if (item.keywords.some((kw) => combined.includes(kw.toLowerCase()))) {
+          return `${item.name}|${item.days}`;
         }
       }
       return null;
@@ -760,12 +1042,12 @@
 
           updateEstimatedExpiry();
           updatePreviewBox();
-          const detectedCat = inferred ? inferred.split("|")[0] : els.category.value.split("|")[0];
-          setStatus(`Trovato: ${productName || "Prodotto"} · Categoria: ${detectedCat}.`);
+          const [catName, catDays] = els.category.value.split("|");
+          setStatus(`Trovato: ${productName || "Prodotto"} · Categoria: ${catName} (+${catDays} gg).`);
         } else {
           updateEstimatedExpiry();
           updatePreviewBox();
-          setStatus("Codice non trovato su Open Food Facts: inserisci i dati manualmente.");
+          setStatus("Codice non trovato: inserisci i dati o usa il tasto Foto.");
         }
       } catch {
         updateEstimatedExpiry();
@@ -792,7 +1074,7 @@
         try { codeReader.reset(); } catch {}
       }
 
-      els.videoContainer.style.display = "block";
+      els.cameraSection.style.display = "block";
       els.btnStopScan.style.display = "block";
       setStatus("Avvio fotocamera in corso...");
 
@@ -812,8 +1094,15 @@
             }
           }
         );
+
+        const stream = els.video && els.video.srcObject;
+        const videoTrack = stream && typeof stream.getVideoTracks === "function"
+          ? stream.getVideoTracks()[0]
+          : null;
+        setupZoomControlsForTrack(videoTrack);
+
         isScanning = true;
-        setStatus("Fotocamera attiva: inquadra il codice a barre.");
+        setStatus("Fotocamera attiva: usa lo zoom se il codice è piccolo.");
       } catch (err) {
         const reason = err && (err.name || err.message) ? ` (${err.name || err.message})` : "";
         setStatus(`Fotocamera non avviata${reason}.`);
@@ -826,6 +1115,9 @@
 
     async function stopScanner() {
       isScanning = false;
+      currentVideoTrack = null;
+      hardwareZoomSupported = false;
+      els.video.style.transform = "scale(1)";
       if (codeReader) {
         try { codeReader.reset(); } catch {}
       }
@@ -835,7 +1127,7 @@
           els.video.srcObject = null;
         } catch {}
       }
-      els.videoContainer.style.display = "none";
+      els.cameraSection.style.display = "none";
       els.btnStopScan.style.display = "none";
     }
 
@@ -849,8 +1141,9 @@
       if (!raw || typeof raw !== "object") return null;
       const name = String(raw.name || "").trim();
       if (!name) return null;
-      const expiry = isValidDateString(raw.expiry) ? raw.expiry : addDaysToToday(14);
-      const categoryName = String(raw.categoryName || "Altro").trim() || "Altro";
+      const categoryName = String(raw.categoryName || "Altro / Generico").trim() || "Altro / Generico";
+      const meta = getCategoryMeta(categoryName);
+      const expiry = isValidDateString(raw.expiry) ? raw.expiry : addDaysToToday(meta.days);
       const imageUrl = sanitizeImageUrl(raw.imageUrl);
       return {
         id: String(raw.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`),
@@ -888,7 +1181,7 @@
       }
       renderList();
       if (!persisted) {
-        setStatus("Memoria locale bloccata dal browser: dati tenuti nella sessione corrente.");
+        setStatus("Memoria locale bloccata (spazio esaurito o navigazione privata): dati tenuti in sessione.");
       } else if (successMessage) {
         setStatus(successMessage);
       }
@@ -956,6 +1249,7 @@
         }
 
         const imgSrc = item.imageUrl ? escapeHtml(item.imageUrl) : fallbackCategoryImage(item.categoryName);
+        const safeId = escapeHtml(item.id);
 
         return `
           <div class="item ${cls}">
@@ -970,10 +1264,10 @@
               </div>
             </div>
             <div class="item-actions">
-              <button type="button" class="mini btn-blue" title="Aumenta quantità" onclick="changeQty('${escapeHtml(item.id)}', 1)">+1</button>
-              <button type="button" class="mini btn-white" title="Diminuisci quantità" onclick="changeQty('${escapeHtml(item.id)}', -1)">-1</button>
-              <button type="button" class="mini btn-yellow" onclick="openEditModal('${escapeHtml(item.id)}')">Modifica</button>
-              <button type="button" class="mini btn-red" onclick="deleteItem('${escapeHtml(item.id)}')">Elimina</button>
+              <button type="button" class="mini btn-blue" title="Aumenta quantità" data-action="inc" data-id="${safeId}">+1</button>
+              <button type="button" class="mini btn-white" title="Diminuisci quantità" data-action="dec" data-id="${safeId}">-1</button>
+              <button type="button" class="mini btn-yellow" data-action="edit" data-id="${safeId}">Modifica</button>
+              <button type="button" class="mini btn-red" data-action="delete" data-id="${safeId}">Elimina</button>
             </div>
           </div>
         `;
@@ -986,7 +1280,7 @@
       }[m]));
     }
 
-    window.changeQty = function(id, delta) {
+    function changeQty(id, delta) {
       const items = loadItems().map((item) => {
         if (item.id === id) {
           const nextQty = item.qty + delta;
@@ -995,15 +1289,15 @@
         return item;
       }).filter(Boolean);
       saveItems(items);
-    };
+    }
 
-    window.deleteItem = function(id) {
+    function deleteItem(id) {
       const target = loadItems().find((item) => item.id === id);
       if (target && !window.confirm(`Eliminare "${target.name}" dalla dispensa?`)) {
         return;
       }
       saveItems(loadItems().filter((item) => item.id !== id), "Prodotto rimosso.");
-    };
+    }
 
     function ensureEditCategoryOption(catName) {
       const exists = Array.from(els.editCategory.options).some((opt) => opt.value === catName);
@@ -1016,7 +1310,7 @@
       els.editCategory.value = catName;
     }
 
-    window.openEditModal = function(id) {
+    function openEditModal(id) {
       const item = loadItems().find((i) => i.id === id);
       if (!item) return;
 
@@ -1030,7 +1324,17 @@
 
       els.editModal.classList.add("open");
       els.editModal.setAttribute("aria-hidden", "false");
-    };
+    }
+
+    els.list.addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-action][data-id]");
+      if (!btn) return;
+      const { action, id } = btn.dataset;
+      if (action === "inc") changeQty(id, 1);
+      else if (action === "dec") changeQty(id, -1);
+      else if (action === "edit") openEditModal(id);
+      else if (action === "delete") deleteItem(id);
+    });
 
     function closeEditModal() {
       els.editModal.classList.remove("open");
@@ -1160,6 +1464,7 @@
       e.target.value = "";
     });
 
+    populateCategorySelects();
     updateEstimatedExpiry();
     updatePreviewBox();
     renderList();
