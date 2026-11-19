@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dispensa Cartoon & Scadenze</title>
+  <title>Dispensa & Scadenze</title>
   <script type="text/javascript" src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
   <style>
     :root {
@@ -25,7 +25,12 @@
 
     * {
       box-sizing: border-box;
-      font-family: "Trebuchet MS", "Comic Sans MS", "Segoe UI Rounded", system-ui, sans-serif;
+      font-family: "Trebuchet MS", "Segoe UI Rounded", system-ui, sans-serif;
+    }
+
+    html, body {
+      width: 100%;
+      overflow-x: clip;
     }
 
     body {
@@ -42,76 +47,91 @@
     .hero {
       background: var(--yellow);
       border: 3px solid var(--border);
-      border-radius: 22px;
-      padding: 16px 18px;
+      border-radius: 20px;
+      padding: 15px 18px;
       box-shadow: var(--shadow);
       margin-bottom: 18px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
+      min-width: 0;
     }
 
     .hero h1 {
-      margin: 0 0 4px;
-      font-size: 1.55rem;
+      margin: 0 0 3px;
+      font-size: 1.5rem;
       font-weight: 900;
       letter-spacing: -0.3px;
     }
 
     .hero p {
       margin: 0;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       font-weight: 700;
       color: #27272a;
     }
 
-    .badge-cartoon {
+    .badge-box {
       background: var(--surface);
       border: 3px solid var(--border);
-      border-radius: 16px;
+      border-radius: 14px;
       padding: 8px 12px;
       font-weight: 900;
       font-size: 0.85rem;
       box-shadow: var(--shadow-sm);
       white-space: nowrap;
+      flex-shrink: 0;
     }
 
     .card {
       background: var(--surface);
       border: 3px solid var(--border);
-      border-radius: 22px;
+      border-radius: 20px;
       padding: 16px;
       box-shadow: var(--shadow);
       margin-bottom: 18px;
+      min-width: 0;
+      overflow-x: clip;
     }
 
     .section-title {
       margin: 0 0 12px;
-      font-size: 1.1rem;
+      font-size: 1.08rem;
       font-weight: 900;
-      display: flex;
-      align-items: center;
-      gap: 8px;
     }
 
     label {
       display: block;
-      font-size: 0.88rem;
+      font-size: 0.86rem;
       font-weight: 900;
       margin-bottom: 5px;
       color: var(--ink);
     }
 
     input, select, button {
+      display: block;
       width: 100%;
-      padding: 11px 13px;
+      min-width: 0;
+      max-width: 100%;
+      padding: 11px 12px;
       border-radius: 14px;
       border: 2.5px solid var(--border);
-      font-size: 0.98rem;
+      font-size: 0.96rem;
       font-weight: 700;
       margin-bottom: 12px;
       outline: none;
+    }
+
+    input[type="date"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      min-height: 46px;
+      line-height: 1.2;
+      padding-right: 10px;
     }
 
     input, select {
@@ -127,8 +147,14 @@
 
     .row {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       gap: 10px;
+      min-width: 0;
+    }
+
+    .row > div {
+      min-width: 0;
+      overflow: hidden;
     }
 
     button {
@@ -151,30 +177,17 @@
       cursor: not-allowed;
     }
 
-    button.btn-blue {
-      background: var(--blue);
-    }
-
-    button.btn-yellow {
-      background: var(--yellow);
-    }
-
-    button.btn-orange {
-      background: var(--orange);
-    }
-
-    button.btn-red {
-      background: var(--red);
-    }
-
-    button.btn-white {
-      background: var(--surface);
-    }
+    button.btn-blue { background: var(--blue); }
+    button.btn-yellow { background: var(--yellow); }
+    button.btn-orange { background: var(--orange); }
+    button.btn-red { background: var(--red); }
+    button.btn-white { background: var(--surface); }
 
     button.mini {
+      display: inline-block;
       width: auto;
       padding: 6px 10px;
-      font-size: 0.85rem;
+      font-size: 0.84rem;
       border-radius: 11px;
       margin-bottom: 0;
     }
@@ -188,11 +201,12 @@
       border-radius: 16px;
       padding: 10px;
       margin-bottom: 14px;
+      min-width: 0;
     }
 
     .preview-thumb {
-      width: 62px;
-      height: 62px;
+      width: 60px;
+      height: 60px;
       border-radius: 12px;
       border: 2.5px solid var(--border);
       object-fit: cover;
@@ -201,9 +215,10 @@
     }
 
     .preview-info {
-      font-size: 0.85rem;
+      font-size: 0.84rem;
       font-weight: 700;
       color: var(--muted);
+      min-width: 0;
     }
 
     .preview-info strong {
@@ -211,6 +226,9 @@
       color: var(--ink);
       font-size: 0.92rem;
       margin-bottom: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     #videoContainer {
@@ -236,9 +254,10 @@
       border: 2px solid var(--border);
       border-radius: 12px;
       padding: 8px 12px;
-      font-size: 0.86rem;
+      font-size: 0.85rem;
       font-weight: 800;
       margin-bottom: 12px;
+      word-break: break-word;
     }
 
     .controls-top {
@@ -256,10 +275,11 @@
       background: var(--surface);
       border: 2.5px solid var(--border);
       border-left: 8px solid var(--green-dark);
-      border-radius: 18px;
+      border-radius: 16px;
       padding: 10px 12px;
       margin-bottom: 12px;
       box-shadow: var(--shadow-sm);
+      min-width: 0;
     }
 
     .item.soon {
@@ -291,7 +311,7 @@
 
     .item-title {
       font-weight: 900;
-      font-size: 1rem;
+      font-size: 0.98rem;
       word-break: break-word;
     }
 
@@ -301,7 +321,7 @@
       border: 2px solid var(--border);
       border-radius: 999px;
       padding: 1px 8px;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       font-weight: 900;
       margin-left: 4px;
     }
@@ -328,7 +348,7 @@
       color: var(--muted);
       background: #fafafa;
       border: 2px dashed var(--border);
-      border-radius: 16px;
+      border-radius: 14px;
     }
 
     .modal-backdrop {
@@ -353,9 +373,10 @@
       overflow-y: auto;
       background: var(--surface);
       border: 3px solid var(--border);
-      border-radius: 22px;
+      border-radius: 20px;
       padding: 18px;
       box-shadow: 6px 6px 0px var(--border);
+      overflow-x: clip;
     }
 
     @media (max-width: 520px) {
@@ -372,31 +393,31 @@
 <body>
   <header class="hero">
     <div>
-      <h1>🥫 Dispensa Cartoon</h1>
-      <p>Scansiona, foto automatica e scadenze sempre sotto controllo!</p>
+      <h1>Dispensa & Scadenze</h1>
+      <p>Scansione codice a barre, foto prodotto e controllo scadenze.</p>
     </div>
-    <div class="badge-cartoon" id="totalCountBadge">0 pz</div>
+    <div class="badge-box" id="totalCountBadge">0 pz</div>
   </header>
 
   <section class="card">
-    <h2 class="section-title">📷 Nuovo Prodotto</h2>
+    <h2 class="section-title">Aggiungi prodotto</h2>
 
     <div class="row">
-      <button type="button" id="btnScan" class="btn-blue">Scansiona Barcode</button>
-      <button type="button" id="btnStopScan" class="btn-orange" style="display:none;">Ferma Camera</button>
+      <button type="button" id="btnScan" class="btn-blue">Scansiona codice</button>
+      <button type="button" id="btnStopScan" class="btn-orange" style="display:none;">Ferma fotocamera</button>
     </div>
 
     <div id="videoContainer">
       <video id="interactive" autoplay muted playsinline></video>
     </div>
 
-    <div id="statusMsg" class="status">Pronto! Scansiona un codice a barre o compila i campi qui sotto.</div>
+    <div id="statusMsg" class="status">Pronto. Scansiona un codice a barre o compila i campi.</div>
 
     <div class="preview-box">
       <img id="previewImg" class="preview-thumb" src="" alt="Anteprima prodotto" />
       <div class="preview-info">
-        <strong id="previewTitle">Foto automatica prodotto</strong>
-        <span id="previewSub">Viene recuperata dal barcode o puoi incollare un link immagine.</span>
+        <strong id="previewTitle">Anteprima prodotto</strong>
+        <span id="previewSub">Foto automatica da codice a barre o sigla di categoria.</span>
       </div>
     </div>
 
@@ -405,28 +426,28 @@
       <input type="text" id="barcode" autocomplete="off" inputmode="numeric" placeholder="Es. 8001505005822" />
 
       <label for="name">Nome prodotto</label>
-      <input type="text" id="name" required placeholder="Es. Biscotti frollini" />
+      <input type="text" id="name" required placeholder="Es. Latte parzialmente scremato" />
 
-      <label for="imageUrl">URL Foto prodotto (automatica se trovata)</label>
-      <input type="url" id="imageUrl" placeholder="Compilata in automatico dalla scansione..." />
+      <label for="imageUrl">URL foto prodotto</label>
+      <input type="url" id="imageUrl" placeholder="Compilato automaticamente se disponibile..." />
 
       <div class="row">
         <div>
           <label for="category">Categoria (stima gg)</label>
           <select id="category">
-            <option value="Latticini|10">🥛 Latticini (+10 gg)</option>
-            <option value="Carne/Pesce|4">🥩 Carne/Pesce (+4 gg)</option>
-            <option value="Verdura Fresca|6">🥦 Verdura (+6 gg)</option>
-            <option value="Pasta/Riso|365">🍝 Pasta/Riso (+365 gg)</option>
-            <option value="Scatolame|730">🥫 Scatolame (+730 gg)</option>
-            <option value="Surgelati|180">🧊 Surgelati (+180 gg)</option>
-            <option value="Bevande|90">🥤 Bevande (+90 gg)</option>
-            <option value="Altro|14">📦 Altro (+14 gg)</option>
+            <option value="Latticini|10">Latticini (+10 gg)</option>
+            <option value="Carne/Pesce|4">Carne / Pesce (+4 gg)</option>
+            <option value="Verdura Fresca|6">Verdura / Frutta (+6 gg)</option>
+            <option value="Pasta/Riso|365">Pasta / Riso (+365 gg)</option>
+            <option value="Scatolame|730">Scatolame (+730 gg)</option>
+            <option value="Surgelati|180">Surgelati (+180 gg)</option>
+            <option value="Bevande|90">Bevande (+90 gg)</option>
+            <option value="Altro|14">Altro (+14 gg)</option>
           </select>
         </div>
 
         <div>
-          <label for="qty">Quantità iniziale</label>
+          <label for="qty">Quantità</label>
           <input type="number" id="qty" min="1" step="1" value="1" required />
         </div>
       </div>
@@ -434,20 +455,20 @@
       <label for="expiry">Data di scadenza</label>
       <input type="date" id="expiry" required />
 
-      <button type="submit">➕ Salva in Dispensa</button>
+      <button type="submit">Salva prodotto</button>
     </form>
   </section>
 
   <section class="card">
-    <h2 class="section-title">📋 La Tua Dispensa</h2>
+    <h2 class="section-title">Prodotti in dispensa</h2>
 
-    <input type="search" id="searchInput" placeholder="🔍 Cerca per nome, categoria o codice..." />
+    <input type="search" id="searchInput" placeholder="Cerca per nome, categoria o codice..." />
 
     <div class="controls-top">
       <button type="button" id="filterAll" class="mini btn-yellow">Tutti (0)</button>
-      <button type="button" id="filterUrgent" class="mini btn-white">⚠️ Scad. ≤ 3 gg (0)</button>
-      <button type="button" id="btnExport" class="mini btn-blue">💾 Esporta</button>
-      <button type="button" id="btnImportTrigger" class="mini btn-white">📂 Importa</button>
+      <button type="button" id="filterUrgent" class="mini btn-white">Scadenza ≤ 3 gg (0)</button>
+      <button type="button" id="btnExport" class="mini btn-blue">Esporta</button>
+      <button type="button" id="btnImportTrigger" class="mini btn-white">Importa</button>
       <input type="file" id="importFile" accept=".json,application/json" style="display:none;" />
     </div>
 
@@ -456,7 +477,7 @@
 
   <div id="editModal" class="modal-backdrop" aria-hidden="true">
     <div class="modal-card">
-      <h2 class="section-title">✏️ Modifica Prodotto</h2>
+      <h2 class="section-title">Modifica prodotto</h2>
       <form id="editForm">
         <input type="hidden" id="editId" />
 
@@ -466,21 +487,21 @@
         <label for="editBarcode">Codice a barre (EAN)</label>
         <input type="text" id="editBarcode" inputmode="numeric" />
 
-        <label for="editImageUrl">URL Foto</label>
+        <label for="editImageUrl">URL foto</label>
         <input type="url" id="editImageUrl" placeholder="https://..." />
 
         <div class="row">
           <div>
             <label for="editCategory">Categoria</label>
             <select id="editCategory">
-              <option value="Latticini">🥛 Latticini</option>
-              <option value="Carne/Pesce">🥩 Carne/Pesce</option>
-              <option value="Verdura Fresca">🥦 Verdura Fresca</option>
-              <option value="Pasta/Riso">🍝 Pasta/Riso</option>
-              <option value="Scatolame">🥫 Scatolame</option>
-              <option value="Surgelati">🧊 Surgelati</option>
-              <option value="Bevande">🥤 Bevande</option>
-              <option value="Altro">📦 Altro</option>
+              <option value="Latticini">Latticini</option>
+              <option value="Carne/Pesce">Carne / Pesce</option>
+              <option value="Verdura Fresca">Verdura / Frutta</option>
+              <option value="Pasta/Riso">Pasta / Riso</option>
+              <option value="Scatolame">Scatolame</option>
+              <option value="Surgelati">Surgelati</option>
+              <option value="Bevande">Bevande</option>
+              <option value="Altro">Altro</option>
             </select>
           </div>
           <div>
@@ -493,7 +514,7 @@
         <input type="date" id="editExpiry" required />
 
         <div class="row">
-          <button type="submit">Salva Modifiche</button>
+          <button type="submit">Salva modifiche</button>
           <button type="button" id="btnCancelEdit" class="btn-white">Annulla</button>
         </div>
       </form>
@@ -501,7 +522,7 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "dispensa_cartoon_v1";
+    const STORAGE_KEY = "dispensa_prodotti_v2";
     let memoryFallback = [];
     let codeReader = null;
     let isScanning = false;
@@ -558,19 +579,19 @@
       return "";
     }
 
-    function fallbackCartoonImage(categoryName = "Altro") {
-      const emojiMap = {
-        "Latticini": "🥛",
-        "Carne/Pesce": "🥩",
-        "Verdura Fresca": "🥦",
-        "Pasta/Riso": "🍝",
-        "Scatolame": "🥫",
-        "Surgelati": "🧊",
-        "Bevande": "🥤",
-        "Altro": "🛒"
+    function fallbackCategoryImage(categoryName = "Altro") {
+      const labelMap = {
+        "Latticini": "LAT",
+        "Carne/Pesce": "CAR",
+        "Verdura Fresca": "VRD",
+        "Pasta/Riso": "PST",
+        "Scatolame": "SCT",
+        "Surgelati": "FRZ",
+        "Bevande": "BEV",
+        "Altro": "PRO"
       };
-      const emoji = emojiMap[categoryName] || "🛒";
-      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"><rect width="120" height="120" rx="22" fill="#fef08a"/><text x="50%" y="56%" dominant-baseline="middle" text-anchor="middle" font-size="56">${emoji}</text></svg>`;
+      const code = labelMap[categoryName] || "PRO";
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"><rect width="120" height="120" rx="20" fill="#fef08a"/><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="30" fill="#18181b">${code}</text></svg>`;
       return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
     }
 
@@ -582,25 +603,25 @@
       els.previewTitle.textContent = prodName;
       if (safeUrl) {
         els.previewImg.src = safeUrl;
-        els.previewSub.textContent = "Foto collegata al prodotto.";
+        els.previewSub.textContent = "Immagine associata al prodotto.";
       } else {
-        els.previewImg.src = fallbackCartoonImage(catName);
+        els.previewImg.src = fallbackCategoryImage(catName);
         els.previewSub.textContent = els.imageUrl.value.trim()
-          ? "URL non valido: mostrata icona cartoon."
-          : "Nessuna foto esterna: mostrata icona cartoon.";
+          ? "URL non valido: mostrata sigla di categoria."
+          : "Nessuna immagine esterna: mostrata sigla di categoria.";
       }
     }
 
     els.previewImg.addEventListener("error", () => {
       const [catName] = els.category.value.split("|");
-      els.previewImg.src = fallbackCartoonImage(catName);
-      els.previewSub.textContent = "Immagine non raggiungibile: usata icona cartoon.";
+      els.previewImg.src = fallbackCategoryImage(catName);
+      els.previewSub.textContent = "Immagine non disponibile: mostrata sigla di categoria.";
     });
 
     els.list.addEventListener("error", (e) => {
       if (e.target && e.target.classList && e.target.classList.contains("item-img")) {
         const catName = e.target.dataset.category || "Altro";
-        const fb = fallbackCartoonImage(catName);
+        const fb = fallbackCategoryImage(catName);
         if (e.target.src !== fb) {
           e.target.src = fb;
         }
@@ -642,15 +663,68 @@
       updatePreviewBox();
     }
 
-    function inferCategoryFromOFF(categoriesText = "") {
-      const txt = String(categoriesText).toLowerCase();
-      if (/\b(milk|dairy|yogurt|cheese|latte|formaggio|burro|panna)\b/.test(txt)) return "Latticini|10";
-      if (/\b(meat|fish|poultry|carne|pesce|pollo|salumi|affettati)\b/.test(txt)) return "Carne/Pesce|4";
-      if (/\b(vegetable|fruit|verdura|frutta|ortaggi|insalata)\b/.test(txt)) return "Verdura Fresca|6";
-      if (/\b(pasta|rice|riso|cereali|farina)\b/.test(txt)) return "Pasta/Riso|365";
-      if (/\b(canned|conserv|scatola|tonno|pomodoro|legumi)\b/.test(txt)) return "Scatolame|730";
-      if (/\b(frozen|surgel|gelo)\b/.test(txt)) return "Surgelati|180";
-      if (/\b(beverage|water|juice|bevande|acqua|succo|bibite)\b/.test(txt)) return "Bevande|90";
+    function inferCategoryFromProduct(categoriesData = "", productText = "") {
+      const rawCat = Array.isArray(categoriesData) ? categoriesData.join(" ") : String(categoriesData);
+      const combined = `${rawCat} ${String(productText)}`.toLowerCase();
+
+      const rules = [
+        {
+          value: "Latticini|10",
+          patterns: [
+            "milk", "dairy", "yogurt", "yoghurt", "cheese", "cream", "butter", "kefir",
+            "latte", "latticini", "formagg", "yogurt", "panna", "burro", "mozzarella",
+            "ricotta", "stracchino", "mascarpone", "caciotta", "pecorino", "grana", "parmigiano"
+          ]
+        },
+        {
+          value: "Carne/Pesce|4",
+          patterns: [
+            "meat", "fish", "poultry", "beef", "pork", "chicken", "turkey", "salmon", "tuna", "shrimp",
+            "carne", "pesce", "pollo", "tacchino", "manzo", "maiale", "vitello", "salmone",
+            "tonno fresco", "gamber", "prosciutto", "salumi", "affettat", "wurstel", "salsiccia", "bresaola"
+          ]
+        },
+        {
+          value: "Surgelati|180",
+          patterns: [
+            "frozen", "surgel", "ice-cream", "ice cream", "gelato", "sofficini", "bastoncini"
+          ]
+        },
+        {
+          value: "Verdura Fresca|6",
+          patterns: [
+            "vegetable", "fruit", "salad", "tomato", "potato", "apple", "banana",
+            "verdura", "frutta", "ortagg", "insalata", "pomodor", "patat", "mel", "banan", "limon", "aranc"
+          ]
+        },
+        {
+          value: "Pasta/Riso|365",
+          patterns: [
+            "pasta", "rice", "spaghetti", "penne", "fusilli", "rigatoni", "riso",
+            "cereal", "flour", "farina", "couscous", "orzo", "farro", "avena", "fiocchi"
+          ]
+        },
+        {
+          value: "Scatolame|730",
+          patterns: [
+            "canned", "conserv", "beans", "chickpeas", "lentils",
+            "scatola", "fagiol", "ceci", "lenticchi", "pelat", "passata", "polpa di pomodoro", "legum", "tonno all'olio"
+          ]
+        },
+        {
+          value: "Bevande|90",
+          patterns: [
+            "beverage", "drink", "water", "juice", "soda", "tea", "coffee",
+            "bevand", "acqua", "succo", "bibit", "caffe", "caffè", "tisana", "birra", "vino"
+          ]
+        }
+      ];
+
+      for (const rule of rules) {
+        if (rule.patterns.some((p) => combined.includes(p))) {
+          return rule.value;
+        }
+      }
       return null;
     }
 
@@ -662,7 +736,7 @@
 
       isLookingUp = true;
       lastLookedUpCode = clean;
-      setStatus(`🔎 Cerco ${clean} su Open Food Facts...`);
+      setStatus(`Ricerca codice ${clean} su Open Food Facts...`);
       try {
         const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${encodeURIComponent(clean)}.json`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -670,34 +744,33 @@
         if (data && data.status === 1 && data.product) {
           const p = data.product;
           const productName = p.product_name_it || p.product_name || p.brands || "";
+          const genericName = p.generic_name_it || p.generic_name || "";
           const photo = sanitizeImageUrl(p.image_front_url || p.image_front_small_url || p.image_url || "");
 
-          if (productName && !els.name.value.trim()) {
-            els.name.value = productName;
-          } else if (productName) {
-            els.name.value = productName;
-          }
-          if (photo) {
-            els.imageUrl.value = photo;
-          }
+          if (productName) els.name.value = productName;
+          if (photo) els.imageUrl.value = photo;
 
-          const inferred = inferCategoryFromOFF(p.categories || p.categories_tags || "");
+          const inferred = inferCategoryFromProduct(
+            p.categories || p.categories_tags || "",
+            `${productName} ${genericName}`
+          );
           if (inferred) {
             els.category.value = inferred;
           }
 
           updateEstimatedExpiry();
           updatePreviewBox();
-          setStatus(`✅ Trovato: ${productName || "Prodotto"}${photo ? " + foto caricata!" : "."}`);
+          const detectedCat = inferred ? inferred.split("|")[0] : els.category.value.split("|")[0];
+          setStatus(`Trovato: ${productName || "Prodotto"} · Categoria: ${detectedCat}.`);
         } else {
           updateEstimatedExpiry();
           updatePreviewBox();
-          setStatus("ℹ️ Codice non trovato: inserisci nome e scadenza a mano.");
+          setStatus("Codice non trovato su Open Food Facts: inserisci i dati manualmente.");
         }
       } catch {
         updateEstimatedExpiry();
         updatePreviewBox();
-        setStatus("⚠️ Errore di rete: scadenza stimata impostata.");
+        setStatus("Errore di rete durante la ricerca: scadenza stimata impostata.");
       } finally {
         isLookingUp = false;
       }
@@ -706,7 +779,7 @@
     async function startScanner() {
       if (isScanning || isStartingScan) return;
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        setStatus("❌ Fotocamera non disponibile su questo contesto (serve HTTPS).");
+        setStatus("Fotocamera non disponibile su questo contesto (serve HTTPS).");
         return;
       }
 
@@ -721,7 +794,7 @@
 
       els.videoContainer.style.display = "block";
       els.btnStopScan.style.display = "block";
-      setStatus("📷 Avvio fotocamera...");
+      setStatus("Avvio fotocamera in corso...");
 
       try {
         await codeReader.decodeFromConstraints(
@@ -740,10 +813,10 @@
           }
         );
         isScanning = true;
-        setStatus("📷 Inquadra il codice a barre!");
+        setStatus("Fotocamera attiva: inquadra il codice a barre.");
       } catch (err) {
         const reason = err && (err.name || err.message) ? ` (${err.name || err.message})` : "";
-        setStatus(`❌ Fotocamera non avviata${reason}.`);
+        setStatus(`Fotocamera non avviata${reason}.`);
         await stopScanner();
       } finally {
         isStartingScan = false;
@@ -765,6 +838,12 @@
       els.videoContainer.style.display = "none";
       els.btnStopScan.style.display = "none";
     }
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden && (isScanning || isStartingScan)) {
+        stopScanner();
+      }
+    });
 
     function normalizeItem(raw) {
       if (!raw || typeof raw !== "object") return null;
@@ -809,7 +888,7 @@
       }
       renderList();
       if (!persisted) {
-        setStatus("⚠️ Memoria locale bloccata dal browser: dati tenuti in sessione.");
+        setStatus("Memoria locale bloccata dal browser: dati tenuti nella sessione corrente.");
       } else if (successMessage) {
         setStatus(successMessage);
       }
@@ -842,7 +921,7 @@
 
       const urgentCount = allItems.filter((item) => daysUntil(item.expiry) <= 3).length;
       els.filterAll.textContent = `Tutti (${allItems.length})`;
-      els.filterUrgent.textContent = `⚠️ Scad. ≤ 3 gg (${urgentCount})`;
+      els.filterUrgent.textContent = `Scadenza ≤ 3 gg (${urgentCount})`;
 
       const query = els.searchInput.value.trim().toLowerCase();
       const filtered = allItems.filter((item) => {
@@ -859,8 +938,8 @@
 
       if (!filtered.length) {
         els.list.innerHTML = allItems.length
-          ? "<div class='empty-msg'>Nessun prodotto trovato con questo filtro.</div>"
-          : "<div class='empty-msg'>Dispensa vuota! Aggiungi il tuo primo prodotto qui sopra.</div>";
+          ? "<div class='empty-msg'>Nessun prodotto corrisponde ai filtri selezionati.</div>"
+          : "<div class='empty-msg'>Nessun prodotto registrato in dispensa.</div>";
         return;
       }
 
@@ -873,10 +952,10 @@
           label = `Scaduto da ${Math.abs(diff)} gg (${item.expiry})`;
         } else if (diff <= 3) {
           cls = "soon";
-          label = diff === 0 ? `Scade OGGI (${item.expiry})` : `Scade tra ${diff} gg (${item.expiry})`;
+          label = diff === 0 ? `Scade oggi (${item.expiry})` : `Scade tra ${diff} gg (${item.expiry})`;
         }
 
-        const imgSrc = item.imageUrl ? escapeHtml(item.imageUrl) : fallbackCartoonImage(item.categoryName);
+        const imgSrc = item.imageUrl ? escapeHtml(item.imageUrl) : fallbackCategoryImage(item.categoryName);
 
         return `
           <div class="item ${cls}">
@@ -893,8 +972,8 @@
             <div class="item-actions">
               <button type="button" class="mini btn-blue" title="Aumenta quantità" onclick="changeQty('${escapeHtml(item.id)}', 1)">+1</button>
               <button type="button" class="mini btn-white" title="Diminuisci quantità" onclick="changeQty('${escapeHtml(item.id)}', -1)">-1</button>
-              <button type="button" class="mini btn-yellow" onclick="openEditModal('${escapeHtml(item.id)}')">✏️ Modifica</button>
-              <button type="button" class="mini btn-red" onclick="deleteItem('${escapeHtml(item.id)}')">🗑️</button>
+              <button type="button" class="mini btn-yellow" onclick="openEditModal('${escapeHtml(item.id)}')">Modifica</button>
+              <button type="button" class="mini btn-red" onclick="deleteItem('${escapeHtml(item.id)}')">Elimina</button>
             </div>
           </div>
         `;
@@ -919,7 +998,11 @@
     };
 
     window.deleteItem = function(id) {
-      saveItems(loadItems().filter((item) => item.id !== id), "🗑️ Prodotto rimosso.");
+      const target = loadItems().find((item) => item.id === id);
+      if (target && !window.confirm(`Eliminare "${target.name}" dalla dispensa?`)) {
+        return;
+      }
+      saveItems(loadItems().filter((item) => item.id !== id), "Prodotto rimosso.");
     };
 
     function ensureEditCategoryOption(catName) {
@@ -927,7 +1010,7 @@
       if (!exists) {
         const opt = document.createElement("option");
         opt.value = catName;
-        opt.textContent = `📦 ${catName}`;
+        opt.textContent = catName;
         els.editCategory.appendChild(opt);
       }
       els.editCategory.value = catName;
@@ -981,7 +1064,7 @@
       if (!updated) return;
 
       const items = loadItems().map((item) => (item.id === id ? updated : item));
-      saveItems(items, `✏️ Aggiornato: ${updated.name}.`);
+      saveItems(items, `Aggiornato: ${updated.name}.`);
       closeEditModal();
     });
 
@@ -1011,7 +1094,7 @@
 
       const productName = els.name.value.trim();
       if (!productName) {
-        setStatus("⚠️ Inserisci un nome prodotto prima di salvare.");
+        setStatus("Inserisci un nome prodotto prima di salvare.");
         return;
       }
 
@@ -1045,7 +1128,7 @@
       updateEstimatedExpiry();
       updatePreviewBox();
 
-      saveItems(items, `🎉 Salvato: ${newItem.name} (x${newItem.qty}).`);
+      saveItems(items, `Salvato: ${newItem.name} (x${newItem.qty}).`);
     });
 
     els.btnExport.addEventListener("click", () => {
@@ -1053,7 +1136,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `dispensa-cartoon-backup-${formatLocalDate(new Date())}.json`;
+      a.download = `dispensa-backup-${formatLocalDate(new Date())}.json`;
       a.click();
       URL.revokeObjectURL(url);
     });
@@ -1067,12 +1150,12 @@
         const parsed = JSON.parse(text);
         if (Array.isArray(parsed)) {
           const validItems = parsed.map(normalizeItem).filter(Boolean);
-          saveItems(validItems, `📂 Backup importato (${validItems.length} prodotti).`);
+          saveItems(validItems, `Backup importato (${validItems.length} prodotti).`);
         } else {
-          setStatus("⚠️ File di backup non valido.");
+          setStatus("File di backup non valido.");
         }
       } catch {
-        setStatus("⚠️ File di backup non valido.");
+        setStatus("File di backup non valido.");
       }
       e.target.value = "";
     });
