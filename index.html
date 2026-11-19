@@ -295,6 +295,18 @@
       background: #18181b;
     }
 
+    #scanGuide {
+      position: absolute;
+      left: 10%;
+      right: 10%;
+      top: 50%;
+      height: 2px;
+      background: rgba(250, 204, 21, 0.85);
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+      pointer-events: none;
+      z-index: 2;
+    }
+
     video {
       width: 100%;
       height: 240px;
@@ -491,6 +503,7 @@
 
     <div id="cameraSection">
       <div id="videoContainer">
+        <div id="scanGuide"></div>
         <video id="interactive" autoplay muted playsinline></video>
       </div>
 
@@ -623,7 +636,6 @@
   <script>
     const STORAGE_KEY = "dispensa_prodotti_v3";
 
-    // Ordine studiato per far prevalere categorie piu specifiche prima di quelle generiche
     const CATEGORY_PROSPECTUS = [
       {
         group: "Surgelati e conserve specifiche",
@@ -694,6 +706,7 @@
     let codeReader = null;
     let isScanning = false;
     let isStartingScan = false;
+    let scanSessionId = 0;
     let isLookingUp = false;
     let lastLookedUpCode = "";
     let activeFilter = "all";
@@ -745,6 +758,33 @@
       editExpiry: document.getElementById("editExpiry"),
       btnCancelEdit: document.getElementById("btnCancelEdit")
     };
+
+    function createConfiguredCodeReader() {
+      const hints = new Map();
+      if (typeof ZXing !== "undefined" && ZXing.BarcodeFormat && ZXing.DecodeHintType) {
+        hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
+          ZXing.BarcodeFormat.EAN_13,
+          ZXing.BarcodeFormat.EAN_8,
+          ZXing.BarcodeFormat.UPC_A,
+          ZXing.BarcodeFormat.UPC_E,
+          ZXing.BarcodeFormat.CODE_128,
+          ZXing.BarcodeFormat.QR_CODE
+        ]);
+        hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+      }
+      return new ZXing.BrowserMultiFormatReader(hints, 250);
+    }
+
+    function isPlausibleBarcode(rawText, format) {
+      const text = String(rawText || "").trim();
+      if (!text) return false;
+      // I codici a barre commerciali standard (EAN-8, EAN-13, UPC) hanno almeno 8 cifre
+      if (/^\d+$/.test(text)) {
+        return text.length >= 8 && text.length <= 14;
+      }
+      // Per Code-128 o QR accetta solo stringhe di almeno 6 caratteri
+      return text.length >= 6;
+    }
 
     function populateCategorySelects() {
       els.category.innerHTML = "";
@@ -1047,7 +1087,7 @@
         } else {
           updateEstimatedExpiry();
           updatePreviewBox();
-          setStatus("Codice non trovato: inserisci i dati o usa il tasto Foto.");
+          setStatus(`Codice ${clean} non presente nel database: inserisci nome e foto.`);
         }
       } catch {
         updateEstimatedExpiry();
@@ -1060,6 +1100,10 @@
 
     async function startScanner() {
       if (isScanning || isStartingScan) return;
+      if (typeof ZXing === "undefined") {
+        setStatus("Libreria scanner non caricata: ricarica la pagina con connessione attiva.");
+        return;
+      }
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         setStatus("Fotocamera non disponibile su questo contesto (serve HTTPS).");
         return;
@@ -1068,32 +1112,60 @@
       isStartingScan = true;
       els.btnScan.disabled = true;
 
-      if (!codeReader) {
-        codeReader = new ZXing.BrowserMultiFormatReader();
-      } else {
+      if (codeReader) {
         try { codeReader.reset(); } catch {}
       }
+      codeReader = createConfiguredCodeReader();
 
       els.cameraSection.style.display = "block";
       els.btnStopScan.style.display = "block";
       setStatus("Avvio fotocamera in corso...");
 
+      const currentSession = ++scanSessionId;
+      const startedAt = Date.now();
+      let hasDecoded = false;
+
+      // Imposta subito isScanning = true prima di avviare il stream di decodifica
+      isScanning = true;
+
       try {
         await codeReader.decodeFromConstraints(
-          { audio: false, video: { facingMode: { ideal: "environment" } } },
+          {
+            audio: false,
+            video: {
+              facingMode: { ideal: "environment" },
+              width: { ideal: 1280 },
+              height: { ideal: 720 }
+            }
+          },
           els.video,
           async (result, err) => {
-            if (!isScanning) return;
+            if (!isScanning || hasDecoded || currentSession !== scanSessionId) return;
+
+            // Attendi 600ms di stabilizzazione autofocus/esposizione prima di accettare letture
+            if (Date.now() - startedAt < 600) return;
+
             if (result) {
-              const scannedText = result.getText();
+              const scannedText = String(result.getText() || "").trim();
+              const format = typeof result.getBarcodeFormat === "function" ? result.getBarcodeFormat() : null;
+              if (!isPlausibleBarcode(scannedText, format)) {
+                return;
+              }
+
+              hasDecoded = true;
               await stopScanner();
               els.barcode.value = scannedText;
               await lookupBarcode(scannedText, true);
             } else if (err && err.name !== "NotFoundException") {
-              console.warn(err);
+              // Ignora errori transitori sui singoli fotogrammi
             }
           }
         );
+
+        if (!isScanning || currentSession !== scanSessionId) {
+          await stopScanner();
+          return;
+        }
 
         const stream = els.video && els.video.srcObject;
         const videoTrack = stream && typeof stream.getVideoTracks === "function"
@@ -1101,8 +1173,7 @@
           : null;
         setupZoomControlsForTrack(videoTrack);
 
-        isScanning = true;
-        setStatus("Fotocamera attiva: usa lo zoom se il codice è piccolo.");
+        setStatus("Fotocamera attiva: allinea il codice a barre alla linea gialla.");
       } catch (err) {
         const reason = err && (err.name || err.message) ? ` (${err.name || err.message})` : "";
         setStatus(`Fotocamera non avviata${reason}.`);
@@ -1114,10 +1185,13 @@
     }
 
     async function stopScanner() {
+      scanSessionId++;
       isScanning = false;
+      isStartingScan = false;
       currentVideoTrack = null;
       hardwareZoomSupported = false;
       els.video.style.transform = "scale(1)";
+
       if (codeReader) {
         try { codeReader.reset(); } catch {}
       }
@@ -1129,6 +1203,7 @@
       }
       els.cameraSection.style.display = "none";
       els.btnStopScan.style.display = "none";
+      els.btnScan.disabled = false;
     }
 
     document.addEventListener("visibilitychange", () => {
