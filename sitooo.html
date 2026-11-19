@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dispensa & Scadenze</title>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --card-2: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #22c55e;
+      --accent-hover: #16a34a;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --border: #475569;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 16px;
+      background: var(--bg);
+      color: var(--text);
+      max-width: 680px;
+      margin-inline: auto;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 1.5rem;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 18px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font-size: 1rem;
+      margin-bottom: 12px;
+    }
+
+    input, select {
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    button {
+      background: var(--accent);
+      color: #052e16;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: var(--accent-hover);
+    }
+
+    button.secondary {
+      background: var(--card-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    button.danger {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    button.small {
+      width: auto;
+      padding: 6px 10px;
+      font-size: 0.85rem;
+      margin-bottom: 0;
+    }
+
+    button.filter-btn {
+      width: auto;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      margin-bottom: 0;
+      background: var(--bg);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    button.filter-btn.active {
+      background: var(--accent);
+      color: #052e16;
+      border-color: var(--accent);
+    }
+
+    button.filter-btn.urgent.active {
+      background: var(--warn);
+      color: #1c1917;
+      border-color: var(--warn);
+    }
+
+    #reader {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 12px;
+      display: none;
+    }
+
+    .status {
+      font-size: 0.85rem;
+      color: var(--muted);
+      min-height: 18px;
+      margin-bottom: 10px;
+    }
+
+    .item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-left: 6px solid var(--accent);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .item.soon {
+      border-left-color: var(--warn);
+    }
+
+    .item.expired {
+      border-left-color: var(--danger);
+    }
+
+    .item-title {
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .item-meta {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+      align-items: center;
+    }
+
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    #searchInput {
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Dispensa & Scadenze</h1>
+  <div class="subtitle">Archivio locale sul dispositivo con scansione EAN, Open Food Facts e stima scadenza.</div>
+
+  <div class="card">
+    <div class="row">
+      <button type="button" id="btnScan" class="secondary">Scansiona Codice</button>
+      <button type="button" id="btnStopScan" class="secondary" style="display:none;">Ferma Fotocamera</button>
+    </div>
+    <div id="reader"></div>
+    <div id="statusMsg" class="status">Pronto. Puoi scansionare un codice a barre o inserire i dati a mano.</div>
+
+    <form id="productForm">
+      <label for="barcode">Codice a barre (EAN)</label>
+      <input type="text" id="barcode" placeholder="Es. 8001505005822" />
+
+      <label for="name">Nome prodotto</label>
+      <input type="text" id="name" required placeholder="Es. Latte fresco intero" />
+
+      <div class="row">
+        <div>
+          <label for="category">Categoria (stima giorni)</label>
+          <select id="category">
+            <option value="Latticini|10">Latticini (+10 gg)</option>
+            <option value="Carne/Pesce|4">Carne / Pesce (+4 gg)</option>
+            <option value="Verdura Fresca|6">Verdura Fresca (+6 gg)</option>
+            <option value="Pasta/Riso|365">Pasta / Riso (+365 gg)</option>
+            <option value="Scatolame|730">Scatolame (+730 gg)</option>
+            <option value="Surgelati|180">Surgelati (+180 gg)</option>
+            <option value="Bevande|90">Bevande (+90 gg)</option>
+            <option value="Altro|14">Altro (+14 gg)</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="qty">Quantità</label>
+          <input type="number" id="qty" min="1" value="1" required />
+        </div>
+      </div>
+
+      <label for="expiry">Data di scadenza (calcolata in automatico, modificabile)</label>
+      <input type="date" id="expiry" required />
+
+      <button type="submit">Salva in Dispensa</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <input type="search" id="searchInput" placeholder="Cerca prodotto o categoria..." />
+
+    <div class="filter-bar">
+      <button type="button" id="filterAll" class="filter-btn active">Tutti</button>
+      <button type="button" id="filterUrgent" class="filter-btn urgent">In scadenza (≤ 3 gg)</button>
+    </div>
+
+    <div class="toolbar">
+      <button type="button" id="btnExport" class="secondary small">Esporta Backup</button>
+      <button type="button" id="btnImportTrigger" class="secondary small">Importa Backup</button>
+      <input type="file" id="importFile" accept=".json" style="display:none;" />
+    </div>
+
+    <div id="list"></div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "dispensa_prodotti_v1";
+    let html5QrCode = null;
+    let isScanning = false;
+    let activeFilter = "all"; // "all" | "urgent"
+
+    const els = {
+      btnScan: document.getElementById("btnScan"),
+      btnStopScan: document.getElementById("btnStopScan"),
+      reader: document.getElementById("reader"),
+      statusMsg: document.getElementById("statusMsg"),
+      form: document.getElementById("productForm"),
+      barcode: document.getElementById("barcode"),
+      name: document.getElementById("name"),
+      category: document.getElementById("category"),
+      qty: document.getElementById("qty"),
+      expiry: document.getElementById("expiry"),
+      searchInput: document.getElementById("searchInput"),
+      filterAll: document.getElementById("filterAll"),
+      filterUrgent: document.getElementById("filterUrgent"),
+      list: document.getElementById("list"),
+      btnExport: document.getElementById("btnExport"),
+      btnImportTrigger: document.getElementById("btnImportTrigger"),
+      importFile: document.getElementById("importFile")
+    };
+
+    function setStatus(msg) {
+      els.statusMsg.textContent = msg;
+    }
+
+    function addDaysToToday(days) {
+      const d = new Date();
+      d.setDate(d.getDate() + Number(days));
+      return d.toISOString().split("T")[0];
+    }
+
+    function getDaysForCategory() {
+      const [, days] = els.category.value.split("|");
+      return Number(days) || 14;
+    }
+
+    function updateEstimatedExpiry() {
+      els.expiry.value = addDaysToToday(getDaysForCategory());
+    }
+
+    function inferCategoryFromOFF(categoriesText = "") {
+      const txt = categoriesText.toLowerCase();
+      if (txt.includes("milk") || txt.includes("dairy") || txt.includes("yogurt") || txt.includes("cheese") || txt.includes("latte")) {
+        return "Latticini|10";
+      }
+      if (txt.includes("meat") || txt.includes("fish") || txt.includes("poultry") || txt.includes("carne") || txt.includes("pesce")) {
+        return "Carne/Pesce|4";
+      }
+      if (txt.includes("vegetable") || txt.includes("fruit") || txt.includes("verdura") || txt.includes("frutta")) {
+        return "Verdura Fresca|6";
+      }
+      if (txt.includes("pasta") || txt.includes("rice") || txt.includes("riso")) {
+        return "Pasta/Riso|365";
+      }
+      if (txt.includes("canned") || txt.includes("conserv")) {
+        return "Scatolame|730";
+      }
+      if (txt.includes("frozen") || txt.includes("surgel")) {
+        return "Surgelati|180";
+      }
+      if (txt.includes("beverage") || txt.includes("water") || txt.includes("juice") || txt.includes("bevande") || txt.includes("acqua")) {
+        return "Bevande|90";
+      }
+      return null;
+    }
+
+    async function lookupBarcode(code) {
+      const clean = code.trim();
+      if (!clean) return;
+      setStatus(`Ricerca codice ${clean} su Open Food Facts...`);
+      try {
+        const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${encodeURIComponent(clean)}.json`);
+        const data = await res.json();
+        if (data.status === 1 && data.product) {
+          const p = data.product;
+          const productName = p.product_name_it || p.product_name || p.brands || "";
+          if (productName) {
+            els.name.value = productName;
+          }
+          const inferred = inferCategoryFromOFF(p.categories || "");
+          if (inferred) {
+            els.category.value = inferred;
+          }
+          updateEstimatedExpiry();
+          setStatus(`Trovato: ${productName || "Prodotto"} - scadenza stimata aggiornata.`);
+        } else {
+          updateEstimatedExpiry();
+          setStatus("Codice non trovato su Open Food Facts: inserisci il nome manualmente.");
+        }
+      } catch (err) {
+        updateEstimatedExpiry();
+        setStatus("Errore di rete durante la ricerca: scadenza stimata impostata.");
+      }
+    }
+
+    async function startScanner() {
+      if (isScanning) return;
+      els.reader.style.display = "block";
+      els.btnStopScan.style.display = "block";
+      html5QrCode = new Html5Qrcode("reader");
+      isScanning = true;
+      setStatus("Inquadra il codice a barre con la fotocamera...");
+
+      try {
+        await html5QrCode.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: { width: 250, height: 140 } },
+          async (decodedText) => {
+            els.barcode.value = decodedText;
+            await stopScanner();
+            await lookupBarcode(decodedText);
+          },
+          () => {}
+        );
+      } catch (err) {
+        setStatus("Impossibile avviare la fotocamera. Verifica i permessi o usa HTTPS.");
+        await stopScanner();
+      }
+    }
+
+    async function stopScanner() {
+      if (html5QrCode && isScanning) {
+        try {
+          await html5QrCode.stop();
+          await html5QrCode.clear();
+        } catch (e) {}
+      }
+      isScanning = false;
+      els.reader.style.display = "none";
+      els.btnStopScan.style.display = "none";
+    }
+
+    function loadItems() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+      } catch {
+        return [];
+      }
+    }
+
+    function saveItems(items) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      renderList();
+    }
+
+    function daysUntil(dateStr) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const target = new Date(dateStr + "T00:00:00");
+      return Math.round((target - today) / (1000 * 60 * 60 * 24));
+    }
+
+    function setFilter(mode) {
+      activeFilter = mode;
+      els.filterAll.classList.toggle("active", mode === "all");
+      els.filterUrgent.classList.toggle("active", mode === "urgent");
+      renderList();
+    }
+
+    function renderList() {
+      const allItems = loadItems().sort((a, b) => a.expiry.localeCompare(b.expiry));
+      const urgentCount = allItems.filter((item) => daysUntil(item.expiry) <= 3).length;
+
+      els.filterAll.textContent = `Tutti (${allItems.length})`;
+      els.filterUrgent.textContent = `In scadenza ≤ 3 gg (${urgentCount})`;
+
+      const query = els.searchInput.value.trim().toLowerCase();
+
+      const filtered = allItems.filter((item) => {
+        const diff = daysUntil(item.expiry);
+        if (activeFilter === "urgent" && diff > 3) return false;
+        if (query) {
+          const matchName = item.name.toLowerCase().includes(query);
+          const matchCat = item.categoryName.toLowerCase().includes(query);
+          const matchCode = (item.barcode || "").toLowerCase().includes(query);
+          if (!matchName && !matchCat && !matchCode) return false;
+        }
+        return true;
+      });
+
+      if (!filtered.length) {
+        els.list.innerHTML = allItems.length
+          ? "<p class='subtitle'>Nessun prodotto corrisponde ai filtri selezionati.</p>"
+          : "<p class='subtitle'>Nessun prodotto registrato in dispensa.</p>";
+        return;
+      }
+
+      els.list.innerHTML = filtered.map((item) => {
+        const diff = daysUntil(item.expiry);
+        let cls = "";
+        let label = `Scade tra ${diff} gg (${item.expiry})`;
+        if (diff < 0) {
+          cls = "expired";
+          label = `Scaduto da ${Math.abs(diff)} gg (${item.expiry})`;
+        } else if (diff <= 3) {
+          cls = "soon";
+          label = diff === 0 ? `Scade oggi (${item.expiry})` : `Scade tra ${diff} gg (${item.expiry})`;
+        }
+
+        return `
+          <div class="item ${cls}">
+            <div>
+              <div class="item-title">${escapeHtml(item.name)} (x${item.qty})</div>
+              <div class="item-meta">${escapeHtml(item.categoryName)} · ${label}</div>
+            </div>
+            <div class="actions">
+              <button type="button" class="secondary small" onclick="changeQty('${item.id}', -1)">-1</button>
+              <button type="button" class="danger small" onclick="deleteItem('${item.id}')">Elimina</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, (m) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[m]));
+    }
+
+    window.changeQty = function(id, delta) {
+      const items = loadItems().map((item) => {
+        if (item.id === id) {
+          const nextQty = item.qty + delta;
+          return nextQty > 0 ? { ...item, qty: nextQty } : null;
+        }
+        return item;
+      }).filter(Boolean);
+      saveItems(items);
+    };
+
+    window.deleteItem = function(id) {
+      saveItems(loadItems().filter((item) => item.id !== id));
+    };
+
+    els.btnScan.addEventListener("click", startScanner);
+    els.btnStopScan.addEventListener("click", stopScanner);
+    els.category.addEventListener("change", updateEstimatedExpiry);
+    els.barcode.addEventListener("change", () => lookupBarcode(els.barcode.value));
+    els.searchInput.addEventListener("input", renderList);
+    els.filterAll.addEventListener("click", () => setFilter("all"));
+    els.filterUrgent.addEventListener("click", () => setFilter("urgent"));
+
+    els.form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const [categoryName] = els.category.value.split("|");
+      const newItem = {
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+        barcode: els.barcode.value.trim(),
+        name: els.name.value.trim(),
+        categoryName,
+        qty: Math.max(1, Number(els.qty.value) || 1),
+        expiry: els.expiry.value
+      };
+
+      const items = loadItems();
+      items.push(newItem);
+      saveItems(items);
+
+      els.form.reset();
+      els.qty.value = 1;
+      updateEstimatedExpiry();
+      setStatus(`Salvato: ${newItem.name}.`);
+    });
+
+    els.btnExport.addEventListener("click", () => {
+      const blob = new Blob([JSON.stringify(loadItems(), null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `dispensa-backup-${new Date().toISOString().split("T")[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    els.btnImportTrigger.addEventListener("click", () => els.importFile.click());
+    els.importFile.addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        if (Array.isArray(parsed)) {
+          saveItems(parsed);
+          setStatus("Backup importato correttamente.");
+        }
+      } catch {
+        setStatus("File di backup non valido.");
+      }
+      e.target.value = "";
+    });
+
+    updateEstimatedExpiry();
+    renderList();
+  </script>
+</body>
+</html>
