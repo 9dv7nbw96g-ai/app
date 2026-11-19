@@ -91,6 +91,11 @@
       background: var(--accent-hover);
     }
 
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
     button.secondary {
       background: var(--card-2);
       color: var(--text);
@@ -233,7 +238,7 @@
 
     <form id="productForm">
       <label for="barcode">Codice a barre (EAN)</label>
-      <input type="text" id="barcode" placeholder="Es. 8001505005822" />
+      <input type="text" id="barcode" autocomplete="off" inputmode="numeric" placeholder="Es. 8001505005822" />
 
       <label for="name">Nome prodotto</label>
       <input type="text" id="name" required placeholder="Es. Latte fresco intero" />
@@ -255,7 +260,7 @@
 
         <div>
           <label for="qty">Quantità</label>
-          <input type="number" id="qty" min="1" value="1" required />
+          <input type="number" id="qty" min="1" step="1" value="1" required />
         </div>
       </div>
 
@@ -270,14 +275,14 @@
     <input type="search" id="searchInput" placeholder="Cerca prodotto o categoria..." />
 
     <div class="filter-bar">
-      <button type="button" id="filterAll" class="filter-btn active">Tutti</button>
-      <button type="button" id="filterUrgent" class="filter-btn urgent">In scadenza (≤ 3 gg)</button>
+      <button type="button" id="filterAll" class="filter-btn active">Tutti (0)</button>
+      <button type="button" id="filterUrgent" class="filter-btn urgent">In scadenza ≤ 3 gg (0)</button>
     </div>
 
     <div class="toolbar">
       <button type="button" id="btnExport" class="secondary small">Esporta Backup</button>
       <button type="button" id="btnImportTrigger" class="secondary small">Importa Backup</button>
-      <input type="file" id="importFile" accept=".json" style="display:none;" />
+      <input type="file" id="importFile" accept=".json,application/json" style="display:none;" />
     </div>
 
     <div id="list"></div>
@@ -285,7 +290,10 @@
 
   <script>
     const STORAGE_KEY = "dispensa_prodotti_v1";
+    let memoryFallback = [];
     let codeReader = null;
+    let isScanning = false;
+    let isStartingScan = false;
     let activeFilter = "all";
 
     const els = {
@@ -313,10 +321,25 @@
       els.statusMsg.textContent = msg;
     }
 
+    function formatLocalDate(dateObj) {
+      const year = dateObj.getFullYear();
+      const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+      const day = String(dateObj.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function isValidDateString(str) {
+      if (typeof str !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(str)) return false;
+      const [y, m, d] = str.split("-").map(Number);
+      const dt = new Date(y, m - 1, d);
+      return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d;
+    }
+
     function addDaysToToday(days) {
       const d = new Date();
+      d.setHours(12, 0, 0, 0);
       d.setDate(d.getDate() + Number(days));
-      return d.toISOString().split("T")[0];
+      return formatLocalDate(d);
     }
 
     function getDaysForCategory() {
@@ -329,45 +352,48 @@
     }
 
     function inferCategoryFromOFF(categoriesText = "") {
-      const txt = categoriesText.toLowerCase();
-      if (txt.includes("milk") || txt.includes("dairy") || txt.includes("yogurt") || txt.includes("cheese") || txt.includes("latte")) {
+      const txt = String(categoriesText).toLowerCase();
+      if (/\b(milk|dairy|yogurt|cheese|latte|formaggio|burro|panna)\b/.test(txt)) {
         return "Latticini|10";
       }
-      if (txt.includes("meat") || txt.includes("fish") || txt.includes("poultry") || txt.includes("carne") || txt.includes("pesce")) {
+      if (/\b(meat|fish|poultry|carne|pesce|pollo|salumi|affettati)\b/.test(txt)) {
         return "Carne/Pesce|4";
       }
-      if (txt.includes("vegetable") || txt.includes("fruit") || txt.includes("verdura") || txt.includes("frutta")) {
+      if (/\b(vegetable|fruit|verdura|frutta|ortaggi|insalata)\b/.test(txt)) {
         return "Verdura Fresca|6";
       }
-      if (txt.includes("pasta") || txt.includes("rice") || txt.includes("riso")) {
+      if (/\b(pasta|rice|riso|cereali|farina)\b/.test(txt)) {
         return "Pasta/Riso|365";
       }
-      if (txt.includes("canned") || txt.includes("conserv")) {
+      if (/\b(canned|conserv|scatola|tonno|pomodoro|legumi)\b/.test(txt)) {
         return "Scatolame|730";
       }
-      if (txt.includes("frozen") || txt.includes("surgel")) {
+      if (/\b(frozen|surgel|gelo)\b/.test(txt)) {
         return "Surgelati|180";
       }
-      if (txt.includes("beverage") || txt.includes("water") || txt.includes("juice") || txt.includes("bevande") || txt.includes("acqua")) {
+      if (/\b(beverage|water|juice|bevande|acqua|succo|bibite)\b/.test(txt)) {
         return "Bevande|90";
       }
       return null;
     }
 
     async function lookupBarcode(code) {
-      const clean = code.trim();
+      const clean = String(code || "").trim();
       if (!clean) return;
       setStatus(`Ricerca codice ${clean} su Open Food Facts...`);
       try {
         const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${encodeURIComponent(clean)}.json`);
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
         const data = await res.json();
-        if (data.status === 1 && data.product) {
+        if (data && data.status === 1 && data.product) {
           const p = data.product;
           const productName = p.product_name_it || p.product_name || p.brands || "";
           if (productName) {
             els.name.value = productName;
           }
-          const inferred = inferCategoryFromOFF(p.categories || "");
+          const inferred = inferCategoryFromOFF(p.categories || p.categories_tags || "");
           if (inferred) {
             els.category.value = inferred;
           }
@@ -384,15 +410,21 @@
     }
 
     async function startScanner() {
+      if (isScanning || isStartingScan) return;
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         setStatus("Questo browser non espone l'accesso alla fotocamera (serve HTTPS).");
         return;
       }
 
+      isStartingScan = true;
+      els.btnScan.disabled = true;
+
       if (!codeReader) {
         codeReader = new ZXing.BrowserMultiFormatReader();
       } else {
-        codeReader.reset();
+        try {
+          codeReader.reset();
+        } catch (e) {}
       }
 
       els.videoContainer.style.display = "block";
@@ -411,25 +443,31 @@
           constraints,
           els.video,
           async (result, err) => {
+            if (!isScanning) return;
             if (result) {
               const scannedText = result.getText();
+              await stopScanner();
               els.barcode.value = scannedText;
-              stopScanner();
               await lookupBarcode(scannedText);
             } else if (err && err.name !== "NotFoundException") {
               console.warn(err);
             }
           }
         );
+        isScanning = true;
         setStatus("Fotocamera attiva: inquadra il codice a barre.");
       } catch (err) {
         const reason = err && (err.name || err.message) ? ` (${err.name || err.message})` : "";
         setStatus(`Fotocamera non avviata${reason}. Controlla i permessi del browser.`);
-        stopScanner();
+        await stopScanner();
+      } finally {
+        isStartingScan = false;
+        els.btnScan.disabled = false;
       }
     }
 
-    function stopScanner() {
+    async function stopScanner() {
+      isScanning = false;
       if (codeReader) {
         try {
           codeReader.reset();
@@ -445,24 +483,59 @@
       els.btnStopScan.style.display = "none";
     }
 
+    function normalizeItem(raw) {
+      if (!raw || typeof raw !== "object") return null;
+      const name = String(raw.name || "").trim();
+      const expiry = isValidDateString(raw.expiry) ? raw.expiry : addDaysToToday(14);
+      if (!name) return null;
+      return {
+        id: String(raw.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`),
+        barcode: String(raw.barcode || "").trim(),
+        name,
+        categoryName: String(raw.categoryName || "Altro").trim() || "Altro",
+        qty: Math.max(1, Math.floor(Number(raw.qty) || 1)),
+        expiry
+      };
+    }
+
     function loadItems() {
       try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return memoryFallback.slice();
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return memoryFallback.slice();
+        const cleaned = parsed.map(normalizeItem).filter(Boolean);
+        memoryFallback = cleaned.slice();
+        return cleaned;
       } catch {
-        return [];
+        return memoryFallback.slice();
       }
     }
 
-    function saveItems(items) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    function saveItems(items, successMessage = "") {
+      const cleaned = items.map(normalizeItem).filter(Boolean);
+      memoryFallback = cleaned.slice();
+      let persisted = true;
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned));
+      } catch (err) {
+        persisted = false;
+      }
       renderList();
+      if (!persisted) {
+        setStatus("Memoria permanente bloccata dal browser (es. navigazione privata). Dati tenuti nella sessione attuale.");
+      } else if (successMessage) {
+        setStatus(successMessage);
+      }
     }
 
     function daysUntil(dateStr) {
+      if (!isValidDateString(dateStr)) return 9999;
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      const target = new Date(dateStr + "T00:00:00");
-      return Math.round((target - today) / (1000 * 60 * 60 * 24));
+      const [y, m, d] = dateStr.split("-").map(Number);
+      const target = new Date(y, m - 1, d);
+      return Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     }
 
     function setFilter(mode) {
@@ -473,7 +546,11 @@
     }
 
     function renderList() {
-      const allItems = loadItems().sort((a, b) => a.expiry.localeCompare(b.expiry));
+      const allItems = loadItems().sort((a, b) => {
+        const byExpiry = a.expiry.localeCompare(b.expiry);
+        return byExpiry !== 0 ? byExpiry : a.name.localeCompare(b.name, "it");
+      });
+
       const urgentCount = allItems.filter((item) => daysUntil(item.expiry) <= 3).length;
 
       els.filterAll.textContent = `Tutti (${allItems.length})`;
@@ -519,8 +596,8 @@
               <div class="item-meta">${escapeHtml(item.categoryName)} · ${label}</div>
             </div>
             <div class="actions">
-              <button type="button" class="secondary small" onclick="changeQty('${item.id}', -1)">-1</button>
-              <button type="button" class="danger small" onclick="deleteItem('${item.id}')">Elimina</button>
+              <button type="button" class="secondary small" onclick="changeQty('${escapeHtml(item.id)}', -1)">-1</button>
+              <button type="button" class="danger small" onclick="deleteItem('${escapeHtml(item.id)}')">Elimina</button>
             </div>
           </div>
         `;
@@ -551,31 +628,52 @@
     els.btnScan.addEventListener("click", startScanner);
     els.btnStopScan.addEventListener("click", stopScanner);
     els.category.addEventListener("change", updateEstimatedExpiry);
-    els.barcode.addEventListener("change", () => lookupBarcode(els.barcode.value));
+    els.barcode.addEventListener("change", () => {
+      if (els.barcode.value.trim()) lookupBarcode(els.barcode.value);
+    });
     els.searchInput.addEventListener("input", renderList);
     els.filterAll.addEventListener("click", () => setFilter("all"));
     els.filterUrgent.addEventListener("click", () => setFilter("urgent"));
 
-    els.form.addEventListener("submit", (e) => {
+    els.form.addEventListener("submit", async (e) => {
       e.preventDefault();
+      if (isScanning || isStartingScan) {
+        await stopScanner();
+      }
+
+      const productName = els.name.value.trim();
+      if (!productName) {
+        setStatus("Inserisci un nome prodotto prima di salvare.");
+        return;
+      }
+
       const [categoryName] = els.category.value.split("|");
-      const newItem = {
-        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+      const expiryValue = isValidDateString(els.expiry.value)
+        ? els.expiry.value
+        : addDaysToToday(getDaysForCategory());
+
+      const newItem = normalizeItem({
+        id: (typeof crypto !== "undefined" && crypto.randomUUID)
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         barcode: els.barcode.value.trim(),
-        name: els.name.value.trim(),
+        name: productName,
         categoryName,
-        qty: Math.max(1, Number(els.qty.value) || 1),
-        expiry: els.expiry.value
-      };
+        qty: Math.max(1, Math.floor(Number(els.qty.value) || 1)),
+        expiry: expiryValue
+      });
 
       const items = loadItems();
       items.push(newItem);
-      saveItems(items);
 
+      const savedCategoryVal = els.category.value;
       els.form.reset();
+      els.barcode.value = "";
+      els.category.value = savedCategoryVal;
       els.qty.value = 1;
       updateEstimatedExpiry();
-      setStatus(`Salvato: ${newItem.name}.`);
+
+      saveItems(items, `Salvato: ${newItem.name}.`);
     });
 
     els.btnExport.addEventListener("click", () => {
@@ -583,7 +681,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `dispensa-backup-${new Date().toISOString().split("T")[0]}.json`;
+      a.download = `dispensa-backup-${formatLocalDate(new Date())}.json`;
       a.click();
       URL.revokeObjectURL(url);
     });
@@ -596,8 +694,10 @@
         const text = await file.text();
         const parsed = JSON.parse(text);
         if (Array.isArray(parsed)) {
-          saveItems(parsed);
-          setStatus("Backup importato correttamente.");
+          const validItems = parsed.map(normalizeItem).filter(Boolean);
+          saveItems(validItems, `Backup importato (${validItems.length} prodotti).`);
+        } else {
+          setStatus("File di backup non valido.");
         }
       } catch {
         setStatus("File di backup non valido.");
